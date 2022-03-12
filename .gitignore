@@ -13,3 +13,7 @@ test-ledger
 docker-target
 .idea
 .coderrect
+
+
+owner.json
+lender.json
