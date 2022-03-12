@@ -20,7 +20,6 @@ echo "Lender address: $LENDER_ADDRESS";
 echo "Creating Lending Program";
 CREATE_PROGRAM_OUTPUT=`solana program --config $CONFIG deploy \
   --program-id $LENDER_KEYPAIR \
-  --max-len 1241933 \
   target/deploy/spl_token_lending.so`;
 echo "$CREATE_PROGRAM_OUTPUT";
 
