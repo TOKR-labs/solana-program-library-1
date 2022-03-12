@@ -29,9 +29,11 @@
         "lint:fix": "eslint . --ext .ts --fix && prettier --write '**/*.{ts,js,json}'"
     },
     "dependencies": {
+        "@solana/spl-token-lending": "^0.3.6",
         "bigint-buffer": "^1.1.5",
         "bignumber.js": "^9.0.1",
-        "buffer-layout": "^1.2.1"
+        "buffer-layout": "^1.2.1",
+        "crypto-hash": "^2.0.1"
     },
     "peerDependencies": {
         "@solana/spl-token": "^0.1.6",
@@ -41,8 +43,8 @@
         "@rollup/plugin-commonjs": "^21.0.0",
         "@rollup/plugin-node-resolve": "^13.0.0",
         "@rollup/plugin-typescript": "^8.2.1",
-        "@solana/spl-token": "^0.1.6",
-        "@solana/web3.js": "^1.20.0",
+        "@solana/spl-token": "^0.2.0",
+        "@solana/web3.js": "^1.36.0",
         "@types/eslint": "^7.2.13",
         "@types/eslint-plugin-prettier": "^3.1.0",
         "@types/node": "^16.0.0",
