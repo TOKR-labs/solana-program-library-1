@@ -1,92 +1,95 @@
 #!/bin/bash
 echo "Running deploy script...";
-SOLANA_CONFIG=$1;
-PROGRAM_ID=$2;
+OWNER_KEYPAIR=$1;
+LENDER_KEYPAIR=$2;
+CONFIG=/Users/gmiller/.config/solana/cli/config.yml
 
-
+solana config set --url https://api.devnet.solana.com -k $OWNER_KEYPAIR;
 # Get OWNER from keypair_path key of the solana config file
-OWNER=`grep 'keypair_path:' $SOLANA_CONFIG | awk '{print $2}'`;
-MARKET_OWNER=`solana --config $SOLANA_CONFIG address`;
+OWNER_ADDRESS=`solana address -k $OWNER_KEYPAIR`
+LENDER_ADDRESS=`solana address -k $LENDER_KEYPAIR`
 
-target/debug/spl-token --config $SOLANA_CONFIG unwrap;
+spl-token unwrap;
 
 set -e;
-echo "Using Solana config filepath: $SOLANA_CONFIG";
-echo "Program ID: $PROGRAM_ID";
-echo "Owner: $OWNER";
-echo "Market Owner $MARKET_OWNER";
+echo "Owner keypair: $OWNER_KEYPAIR";
+echo "Lender keypair: $LENDER_KEYPAIR";
+echo "Owner address: $OWNER_ADDRESS";
+echo "Lender address: $LENDER_ADDRESS";
 
-solana config set --url https://api.devnet.solana.com;
-
-solana airdrop 10 $MARKET_OWNER;
-SOURCE=`target/debug/spl-token --config $SOLANA_CONFIG wrap 10 2>&1 | head -n1 | awk '{print $NF}'`;
-
-solana program --config $SOLANA_CONFIG deploy \
-  --max-length 1241933 \ 
-  --program-id $PROGRAM_ID \
-  target/deploy/spl_token_lending.so;
+echo "Creating Lending Program";
+CREATE_PROGRAM_OUTPUT=`solana program --config $CONFIG deploy \
+  --program-id $LENDER_KEYPAIR \
+  --max-len 1241933 \
+  target/deploy/spl_token_lending.so`;
+echo "$CREATE_PROGRAM_OUTPUT";
 
 echo "Creating Lending Market";
 CREATE_MARKET_OUTPUT=`target/debug/spl-token-lending create-market \
-  --fee-payer    $OWNER \
-  --market-owner $MARKET_OWNER \
+  --fee-payer    $OWNER_KEYPAIR \
+  --market-owner $OWNER_ADDRESS \
   --verbose`;
+
+WRAPPED_SOL=`spl-token wrap 2 2>&1 | head -n1 | awk '{print $NF}'`;
 
 echo "$CREATE_MARKET_OUTPUT";
 MARKET_ADDR=`echo $CREATE_MARKET_OUTPUT | head -n1 | awk '{print $4}'`;
 AUTHORITY_ADDR=`echo $CREATE_MARKET_OUTPUT | grep "Authority Address" | awk '{print $NF}'`;
 
-# echo "Creating SOL reserve";
-# SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
+echo "Creating SOL reserve";
+
+
+echo "--fee-payer $OWNER_KEYPAIR \
+  --market-owner      $OWNER_KEYPAIR \
+  --source-owner      $OWNER_KEYPAIR \
+  --market            $MARKET_ADDR \
+  --source            $WRAPPED_SOL \
+  --amount            1  \
+  --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
+  --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
+  --verbose";
+
+SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
+  --fee-payer         $OWNER_KEYPAIR \
+  --market-owner      $OWNER_KEYPAIR \
+  --source-owner      $OWNER_KEYPAIR \
+  --market            $MARKET_ADDR \
+  --source            $WRAPPED_SOL \
+  --amount            1  \
+  --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
+  --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
+  --verbose`;
+echo "$SOL_RESERVE_OUTPUT";
+
+
+# # USDC Reserve
+# echo "Creating USDC Reserve";
+# USDC_TOKEN_MINT=`target/debug/spl-token --config $SOLANA_CONFIG create-token --decimals 6 |  awk '{print $3}'`;
+# echo "USDC MINT: $USDC_TOKEN_MINT"
+# USDC_TOKEN_ACCOUNT=`target/debug/spl-token --config $SOLANA_CONFIG create-account $USDC_TOKEN_MINT | awk '{print $3}'`;
+# target/debug/spl-token --config $SOLANA_CONFIG mint $USDC_TOKEN_MINT 30000000;
+
+# USDC_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
 #   --fee-payer         $OWNER \
 #   --market-owner      $OWNER \
 #   --source-owner      $OWNER \
 #   --market            $MARKET_ADDR \
-#   --source            $SOURCE \
-#   --amount            5  \
-#   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
-#   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
-#   --switchboard-feed  AdtRGGhmqvom3Jemp5YNrxd9q9unX36BZk1pujkkXijL \
+#   --source            $USDC_TOKEN_ACCOUNT \
+#   --amount            500000  \
+#   --pyth-product      6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA \
+#   --pyth-price        5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7 \
+#   --switchboard-feed  CZx29wKMUxaJDq6aLVQTdViPL754tTR64NAgQBUGxxHb \
 #   --optimal-utilization-rate 80 \
 #   --loan-to-value-ratio 75      \
 #   --liquidation-bonus 5 \
 #   --liquidation-threshold 80 \
 #   --min-borrow-rate 0   \
-#   --optimal-borrow-rate  12 \
-#   --max-borrow-rate 150 \
+#   --optimal-borrow-rate  8 \
+#   --max-borrow-rate 50 \
 #   --host-fee-percentage 50 \
-#   --deposit-limit 40000 \
+#   --deposit-limit 1000000 \
 #   --verbose`;
-# echo "$SOL_RESERVE_OUTPUT";
-
-# USDC Reserve
-echo "Creating USDC Reserve";
-USDC_TOKEN_MINT=`target/debug/spl-token --config $SOLANA_CONFIG create-token --decimals 6 |  awk '{print $3}'`;
-echo "USDC MINT: $USDC_TOKEN_MINT"
-USDC_TOKEN_ACCOUNT=`target/debug/spl-token --config $SOLANA_CONFIG create-account $USDC_TOKEN_MINT | awk '{print $3}'`;
-target/debug/spl-token --config $SOLANA_CONFIG mint $USDC_TOKEN_MINT 30000000;
-
-USDC_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
-  --fee-payer         $OWNER \
-  --market-owner      $OWNER \
-  --source-owner      $OWNER \
-  --market            $MARKET_ADDR \
-  --source            $USDC_TOKEN_ACCOUNT \
-  --amount            500000  \
-  --pyth-product      6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA \
-  --pyth-price        5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7 \
-  --switchboard-feed  CZx29wKMUxaJDq6aLVQTdViPL754tTR64NAgQBUGxxHb \
-  --optimal-utilization-rate 80 \
-  --loan-to-value-ratio 75      \
-  --liquidation-bonus 5 \
-  --liquidation-threshold 80 \
-  --min-borrow-rate 0   \
-  --optimal-borrow-rate  8 \
-  --max-borrow-rate 50 \
-  --host-fee-percentage 50 \
-  --deposit-limit 1000000 \
-  --verbose`;
-echo "$USDC_RESERVE_OUTPUT";
+# echo "$USDC_RESERVE_OUTPUT";
 
 # # ETH Reserve
 # echo "Creating ETH Reserve"
