@@ -6,7 +6,7 @@ homepage = "https://spl.solana.com/token-lending"
 license = "Apache-2.0"
 name = "spl-token-lending-cli"
 repository = "https://github.com/solana-labs/solana-program-library"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 clap = "2.33.3"

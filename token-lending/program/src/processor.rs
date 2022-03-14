@@ -455,7 +455,6 @@ fn process_init_nft_reserve(
     }
 
     let account_info_iter = &mut accounts.iter().peekable();
-    let source_liquidity_info = next_account_info(account_info_iter)?;
     let destination_collateral_info = next_account_info(account_info_iter)?;
     let reserve_info = next_account_info(account_info_iter)?;
     let reserve_liquidity_mint_info = next_account_info(account_info_iter)?;
@@ -479,11 +478,6 @@ fn process_init_nft_reserve(
     if reserve_info.owner != program_id {
         msg!("Reserve provided is not owned by the lending program");
         return Err(LendingError::InvalidAccountOwner.into());
-    }
-
-    if reserve_liquidity_supply_info.key == source_liquidity_info.key {
-        msg!("Reserve liquidity supply cannot be used as the source liquidity provided");
-        return Err(LendingError::InvalidAccountInput.into());
     }
 
     let lending_market = LendingMarket::unpack(&lending_market_info.data.borrow())?;

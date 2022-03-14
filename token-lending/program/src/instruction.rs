@@ -734,7 +734,6 @@ pub fn init_reserve(
 pub fn init_nft_reserve(
     program_id: Pubkey,
     config: ReserveConfig,
-    source_liquidity_pubkey: Pubkey,
     destination_collateral_pubkey: Pubkey,
     reserve_pubkey: Pubkey,
     reserve_liquidity_mint_pubkey: Pubkey,
@@ -753,7 +752,6 @@ pub fn init_nft_reserve(
         &program_id,
     );
     let accounts = vec![
-        AccountMeta::new(source_liquidity_pubkey, false),
         AccountMeta::new(destination_collateral_pubkey, false),
         AccountMeta::new(reserve_pubkey, false),
         AccountMeta::new_readonly(reserve_liquidity_mint_pubkey, false),
@@ -1540,7 +1538,6 @@ mod tests {
                 host_fee_percentage: 1,
             },
         };
-        let source_liquidity_pubkey = Pubkey::new_unique();
         let destination_collateral_pubkey = Pubkey::new_unique();
         let reserve_pubkey = Pubkey::new_unique();
         let reserve_liquidity_mint_pubkey = Pubkey::new_unique();
@@ -1556,7 +1553,6 @@ mod tests {
         let instruction = init_nft_reserve(
             program_id,
             config,
-            source_liquidity_pubkey,
             destination_collateral_pubkey,
             reserve_pubkey,
             reserve_liquidity_mint_pubkey,
@@ -1571,7 +1567,7 @@ mod tests {
             user_transfer_authority_pubkey,
         );
         assert_eq!(instruction.program_id, program_id);
-        assert_eq!(instruction.accounts.len(), 17);
+        assert_eq!(instruction.accounts.len(), 16);
         assert_eq!(
             instruction.data,
             LendingInstruction::InitNFTReserve { config }.pack()
