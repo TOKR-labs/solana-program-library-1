@@ -24,7 +24,7 @@ Adding user collateral 61KmeyPW6vwspfr9zTNLgL6eXPcrQ5TFznraqC6Dwe5G
 Adding user transfer authority 68hGboK7XTCfGeJiThL49xgwcXTv3yxyvb5VzSjx6vap
 
 
-//
+// Wrapped sol reserve
 Program: F3bt6prr5XzKTsv1ELpS2VTfxx1FdYug2rLSkpVmM1fF
 Market: 5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw
 Adding reserve 7AkNHfy7gnEkn1CKYYiPdPDUhx6C56Faf1ox7hVbGAQP
@@ -34,3 +34,17 @@ Adding liquidity supply 76PHeGdPMPSccjy6uSzgZgP1KcJP2wci25UVX6jjt4UT
 Adding liquidity fee receiver 6eeoiCYEsUCYyX6PH7mkvt4H5KCCAt58N6ZGkgtkQX8Z
 Adding user collateral GWpJZvvbcMBDPwGAehwBx6n4jQAAV64qZPWREJuanNsK
 Adding user transfer authority 4rdy2gzgwwQDBWP8aV33aVbHMeNXg2KmKnMzL6ipWPSD
+
+
+// NFT 
+Program: F3bt6prr5XzKTsv1ELpS2VTfxx1FdYug2rLSkpVmM1fF
+Market: 5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw
+Adding nft reserve BLMePAFi6vY7AVyypTMU24RTYM9ZPbUo8YTxgyLxwLiD
+Adding collateral mint Eg6mcKXyD55pbSzUespoBHRYkAqpyFFRr6R1FcT2qrsq
+Adding collateral supply ArfCMnvBPLj53xdWMeiEomo9FQniCiDcghxLCTWXoBCi
+Adding liquidity supply JAt3ggZ4Fye8Ce4z7GfLcdScxwzWhyALTZ5VKpQeDV7k
+Adding liquidity fee receiver Vnt54Jscbim2wFqGdHrHWfHMzqPK8Rrmh1q7paMdg7t
+Adding user collateral 9pbjEwqHAcWsctM5EcawSvs7VDCCiDkJLGH6iL236bVc
+Adding user transfer authority 8o9iHavm8Z8ryLTptu62J7DU6Je2qx3kdVMcmAqwTisg
+Source Liquidity mint B3kxVwQNyRU4uCbNPDVHFopwtk5un6dHEtMcNeoWhCQx
+

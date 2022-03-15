@@ -25,12 +25,12 @@ CREATE_PROGRAM_OUTPUT=`solana program --config $CONFIG deploy \
 echo "$CREATE_PROGRAM_OUTPUT";
 
 echo "Creating Lending Market";
-CREATE_MARKET_OUTPUT=`target/debug/spl-token-lending create-market \
+CREATE_MARKET_OUTPUT=`spl-token-lending create-market \
   --fee-payer    $OWNER_KEYPAIR \
   --market-owner $OWNER_ADDRESS \
   --verbose`;
 
-WRAPPED_SOL=`spl-token wrap 2 2>&1 | head -n1 | awk '{print $NF}'`;
+WRAPPED_SOL=`spl-token wrap 10 2>&1 | head -n1 | awk '{print $NF}'`;
 
 echo "$CREATE_MARKET_OUTPUT";
 MARKET_ADDR=`echo $CREATE_MARKET_OUTPUT | head -n1 | awk '{print $4}'`;
@@ -46,18 +46,18 @@ echo "--fee-payer $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ADDR \
   --source            $WRAPPED_SOL \
-  --amount            1  \
+  --amount            9  \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose";
 
-SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
+SOL_RESERVE_OUTPUT=`spl-token-lending add-reserve \
   --fee-payer         $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ADDR \
   --source            $WRAPPED_SOL \
-  --amount            1  \
+  --amount            9  \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose`;
@@ -120,4 +120,4 @@ export SOL_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | 
 # export USDC_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
 
 # # Run templating command 
-curl $CONFIG_TEMPLATE_FILE | envsubst 
+# curl $CONFIG_TEMPLATE_FILE | envsubst 

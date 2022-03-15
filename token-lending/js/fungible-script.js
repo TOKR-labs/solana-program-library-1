@@ -136,7 +136,7 @@ const depositReserveLiquidity = async () => {
     );
 
     const depositInstructions = depositReserveLiquidityInstruction(
-        100,
+        1000000000,
         wrappedSolAccount,
         userCollateralAccountAddress,
         reserve,

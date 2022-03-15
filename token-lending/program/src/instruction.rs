@@ -314,25 +314,23 @@ pub enum LendingInstruction {
     ///
     /// Accounts expected by this instruction:
     ///
-    ///   0. `[writable]` Source liquidity token account.
-    ///                     $authority can transfer $liquidity_amount.
-    ///   1. `[writable]` Destination collateral token account - uninitialized.
-    ///   2. `[writable]` Reserve account - uninitialized.
-    ///   3. `[]` Reserve liquidity SPL Token mint.
-    ///   4. `[writable]` Reserve liquidity supply SPL Token account - uninitialized.
-    ///   5. `[writable]` Reserve liquidity fee receiver - uninitialized.
-    ///   6. `[writable]` Reserve collateral SPL Token mint - uninitialized.
-    ///   7. `[writable]` Reserve collateral token supply - uninitialized.
-    ///   8. `[]` Pyth product account.
-    ///   9. `[]` Pyth price account.
+    ///   0. `[writable]` Destination collateral token account - uninitialized.
+    ///   1. `[writable]` Reserve account - uninitialized.
+    ///   2. `[]` Reserve liquidity SPL Token mint.
+    ///   3. `[writable]` Reserve liquidity supply SPL Token account - uninitialized.
+    ///   4. `[writable]` Reserve liquidity fee receiver - uninitialized.
+    ///   5. `[writable]` Reserve collateral SPL Token mint - uninitialized.
+    ///   6. `[writable]` Reserve collateral token supply - uninitialized.
+    ///   7. `[]` Pyth product account.
+    ///   8. `[]` Pyth price account.
     ///             This will be used as the reserve liquidity oracle account.
-    ///   10 `[]` Lending market account.
-    ///   11 `[]` Derived lending market authority.
-    ///   12 `[signer]` Lending market owner.
-    ///   13 `[signer]` User transfer authority ($authority).
-    ///   14 `[]` Clock sysvar.
-    ///   15 `[]` Rent sysvar.
-    ///   16 `[]` Token program id.
+    ///   9 `[]` Lending market account.
+    ///   10 `[]` Derived lending market authority.
+    ///   11 `[signer]` Lending market owner.
+    ///   12 `[signer]` User transfer authority ($authority).
+    ///   13 `[]` Clock sysvar.
+    ///   14 `[]` Rent sysvar.
+    ///   15 `[]` Token program id.
     InitNFTReserve {
         /// Reserve configuration values
         config: ReserveConfig,

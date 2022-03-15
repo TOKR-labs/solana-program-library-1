@@ -332,6 +332,15 @@ fn main() {
                         .help("Lending market address"),
                 )
                 .arg(
+                    Arg::with_name("source_liquidity")
+                        .long("source")
+                        .validator(is_pubkey)
+                        .value_name("PUBKEY")
+                        .takes_value(true)
+                        .required(true)
+                        .help("SPL Token account holding nft currently"),
+                )
+                .arg(
                     Arg::with_name("pyth_product")
                         .long("pyth-product")
                         .validator(is_pubkey)
@@ -555,7 +564,6 @@ fn main() {
                 keypair_of(arg_matches, "lending_market_owner").unwrap();
             let lending_market_pubkey = pubkey_of(arg_matches, "lending_market").unwrap();
             let source_liquidity_pubkey = pubkey_of(arg_matches, "source_liquidity").unwrap();
-            let ui_amount = value_of(arg_matches, "liquidity_amount").unwrap();
             let pyth_product_pubkey = pubkey_of(arg_matches, "pyth_product").unwrap();
             let pyth_price_pubkey = pubkey_of(arg_matches, "pyth_price").unwrap();
             let optimal_utilization_rate =
@@ -575,7 +583,6 @@ fn main() {
 
             command_add_nft_reserve(
                 &config,
-                ui_amount,
                 ReserveConfig {
                     optimal_utilization_rate,
                     loan_to_value_ratio,
@@ -881,7 +888,6 @@ fn command_add_reserve(
 #[allow(clippy::too_many_arguments)]
 fn command_add_nft_reserve(
     config: &Config,
-    ui_amount: f64,
     reserve_config: ReserveConfig,
     source_liquidity_pubkey: Pubkey,
     lending_market_pubkey: Pubkey,
@@ -891,11 +897,6 @@ fn command_add_nft_reserve(
 ) -> CommandResult {
     let source_liquidity_account = config.rpc_client.get_account(&source_liquidity_pubkey)?;
     let source_liquidity = Token::unpack_from_slice(source_liquidity_account.data.borrow())?;
-
-    let source_liquidity_mint_account = config.rpc_client.get_account(&source_liquidity.mint)?;
-    let source_liquidity_mint =
-        Mint::unpack_from_slice(source_liquidity_mint_account.data.borrow())?;
-
     let reserve_keypair = Keypair::new();
     let collateral_mint_keypair = Keypair::new();
     let collateral_supply_keypair = Keypair::new();
@@ -930,6 +931,7 @@ fn command_add_nft_reserve(
             "Adding user transfer authority {}",
             user_transfer_authority_keypair.pubkey()
         );
+        println!("Source Liquidity mint {}", source_liquidity.mint);
     }
 
     let reserve_balance = config

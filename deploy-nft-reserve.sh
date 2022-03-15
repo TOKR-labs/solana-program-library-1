@@ -5,7 +5,7 @@
 echo "Running deploy script...";
 OWNER_KEYPAIR=$1;
 MARKET_ID="5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw";
-NFT_SOURCE="B3kxVwQNyRU4uCbNPDVHFopwtk5un6dHEtMcNeoWhCQx";
+NFT_SOURCE="GwwJV6QyKCb49ymZeoAZich1S7o2R9yemqkR7CXF7UH9";
 
 CONFIG=/Users/gmiller/.config/solana/cli/config.yml
 
@@ -18,20 +18,27 @@ echo "Creating nft reserve";
 echo "--fee-payer $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
-  --market            $MARKET_ADDR \
-  --source            $WRAPPED_SOL \
-  --amount            1  \
+  --market            $MARKET_ID \
+  --source            $NFT_SOURCE \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose";
 
-NFT_RESERVE_OUTPUT=`target/debug/spl-token-lending add-nft-reserve \
+NFT_RESERVE_OUTPUT=`spl-token-lending add-nft-reserve \
   --fee-payer         $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
-  --market            $MARKET_ADDR \
+  --market            $MARKET_ID \
   --source            $NFT_SOURCE \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose`;
-echo "$SOL_RESERVE_OUTPUT";
+echo "$NFT_RESERVE_OUTPUT";
 
+
+
+# Reserve
+export NFT_RESERVE_ADDRESS=`echo "$NFT_RESERVE_OUTPUT" | grep "Adding reserve" | awk '{print $NF}'`;
+export NFT_RESERVE_COLLATERAL_MINT_ADDRESS=`echo "$NFT_RESERVE_OUTPUT" | grep "Adding collateral mint" | awk '{print $NF}'`;
+export NFT_RESERVE_COLLATERAL_SUPPLY_ADDRESS=`echo "$NFT_RESERVE_OUTPUT" | grep "Adding collateral supply" | awk '{print $NF}'`;
+export NFT_RESERVE_LIQUIDITY_ADDRESS=`echo "$NFT_RESERVE_OUTPUT" | grep "Adding liquidity supply" | awk '{print $NF}'`;
+export NFT_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$NFT_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
