@@ -308,6 +308,33 @@ pub enum LendingInstruction {
         /// The amount that is to be borrowed - u64::MAX for up to 100% of available liquidity
         amount: u64,
     },
+
+    // 14
+    /// Initializes a new lending market reserve for an nft.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   0. `[writable]` Destination collateral token account - uninitialized.
+    ///   1. `[writable]` Reserve account - uninitialized.
+    ///   2. `[]` Reserve liquidity SPL Token mint.
+    ///   3. `[writable]` Reserve liquidity supply SPL Token account - uninitialized.
+    ///   4. `[writable]` Reserve liquidity fee receiver - uninitialized.
+    ///   5. `[writable]` Reserve collateral SPL Token mint - uninitialized.
+    ///   6. `[writable]` Reserve collateral token supply - uninitialized.
+    ///   7. `[]` Pyth product account.
+    ///   8. `[]` Pyth price account.
+    ///             This will be used as the reserve liquidity oracle account.
+    ///   9 `[]` Lending market account.
+    ///   10 `[]` Derived lending market authority.
+    ///   11 `[signer]` Lending market owner.
+    ///   12 `[signer]` User transfer authority ($authority).
+    ///   13 `[]` Clock sysvar.
+    ///   14 `[]` Rent sysvar.
+    ///   15 `[]` Token program id.
+    InitNFTReserve {
+        /// Reserve configuration values
+        config: ReserveConfig,
+    },
 }
 
 impl LendingInstruction {
@@ -393,6 +420,34 @@ impl LendingInstruction {
             13 => {
                 let (amount, _rest) = Self::unpack_u64(rest)?;
                 Self::FlashLoan { amount }
+            }
+            14 => {
+                let (optimal_utilization_rate, rest) = Self::unpack_u8(rest)?;
+                let (loan_to_value_ratio, rest) = Self::unpack_u8(rest)?;
+                let (liquidation_bonus, rest) = Self::unpack_u8(rest)?;
+                let (liquidation_threshold, rest) = Self::unpack_u8(rest)?;
+                let (min_borrow_rate, rest) = Self::unpack_u8(rest)?;
+                let (optimal_borrow_rate, rest) = Self::unpack_u8(rest)?;
+                let (max_borrow_rate, rest) = Self::unpack_u8(rest)?;
+                let (borrow_fee_wad, rest) = Self::unpack_u64(rest)?;
+                let (flash_loan_fee_wad, rest) = Self::unpack_u64(rest)?;
+                let (host_fee_percentage, _rest) = Self::unpack_u8(rest)?;
+                Self::InitNFTReserve {
+                    config: ReserveConfig {
+                        optimal_utilization_rate,
+                        loan_to_value_ratio,
+                        liquidation_bonus,
+                        liquidation_threshold,
+                        min_borrow_rate,
+                        optimal_borrow_rate,
+                        max_borrow_rate,
+                        fees: ReserveFees {
+                            borrow_fee_wad,
+                            flash_loan_fee_wad,
+                            host_fee_percentage,
+                        },
+                    },
+                }
             }
             _ => {
                 msg!("Instruction cannot be unpacked");
@@ -542,6 +597,36 @@ impl LendingInstruction {
                 buf.push(13);
                 buf.extend_from_slice(&amount.to_le_bytes());
             }
+            Self::InitNFTReserve {
+                config:
+                    ReserveConfig {
+                        optimal_utilization_rate,
+                        loan_to_value_ratio,
+                        liquidation_bonus,
+                        liquidation_threshold,
+                        min_borrow_rate,
+                        optimal_borrow_rate,
+                        max_borrow_rate,
+                        fees:
+                            ReserveFees {
+                                borrow_fee_wad,
+                                flash_loan_fee_wad,
+                                host_fee_percentage,
+                            },
+                    },
+            } => {
+                buf.push(14);
+                buf.extend_from_slice(&optimal_utilization_rate.to_le_bytes());
+                buf.extend_from_slice(&loan_to_value_ratio.to_le_bytes());
+                buf.extend_from_slice(&liquidation_bonus.to_le_bytes());
+                buf.extend_from_slice(&liquidation_threshold.to_le_bytes());
+                buf.extend_from_slice(&min_borrow_rate.to_le_bytes());
+                buf.extend_from_slice(&optimal_borrow_rate.to_le_bytes());
+                buf.extend_from_slice(&max_borrow_rate.to_le_bytes());
+                buf.extend_from_slice(&borrow_fee_wad.to_le_bytes());
+                buf.extend_from_slice(&flash_loan_fee_wad.to_le_bytes());
+                buf.extend_from_slice(&host_fee_percentage.to_le_bytes());
+            }
         }
         buf
     }
@@ -639,6 +724,53 @@ pub fn init_reserve(
             config,
         }
         .pack(),
+    }
+}
+
+/// Creates an 'InitNFTReserve' instruction.
+#[allow(clippy::too_many_arguments)]
+pub fn init_nft_reserve(
+    program_id: Pubkey,
+    config: ReserveConfig,
+    destination_collateral_pubkey: Pubkey,
+    reserve_pubkey: Pubkey,
+    reserve_liquidity_mint_pubkey: Pubkey,
+    reserve_liquidity_supply_pubkey: Pubkey,
+    reserve_liquidity_fee_receiver_pubkey: Pubkey,
+    reserve_collateral_mint_pubkey: Pubkey,
+    reserve_collateral_supply_pubkey: Pubkey,
+    pyth_product_pubkey: Pubkey,
+    pyth_price_pubkey: Pubkey,
+    lending_market_pubkey: Pubkey,
+    lending_market_owner_pubkey: Pubkey,
+    user_transfer_authority_pubkey: Pubkey,
+) -> Instruction {
+    let (lending_market_authority_pubkey, _bump_seed) = Pubkey::find_program_address(
+        &[&lending_market_pubkey.to_bytes()[..PUBKEY_BYTES]],
+        &program_id,
+    );
+    let accounts = vec![
+        AccountMeta::new(destination_collateral_pubkey, false),
+        AccountMeta::new(reserve_pubkey, false),
+        AccountMeta::new_readonly(reserve_liquidity_mint_pubkey, false),
+        AccountMeta::new(reserve_liquidity_supply_pubkey, false),
+        AccountMeta::new(reserve_liquidity_fee_receiver_pubkey, false),
+        AccountMeta::new(reserve_collateral_mint_pubkey, false),
+        AccountMeta::new(reserve_collateral_supply_pubkey, false),
+        AccountMeta::new_readonly(pyth_product_pubkey, false),
+        AccountMeta::new_readonly(pyth_price_pubkey, false),
+        AccountMeta::new_readonly(lending_market_pubkey, false),
+        AccountMeta::new_readonly(lending_market_authority_pubkey, false),
+        AccountMeta::new_readonly(lending_market_owner_pubkey, true),
+        AccountMeta::new_readonly(user_transfer_authority_pubkey, true),
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+        AccountMeta::new_readonly(spl_token::id(), false),
+    ];
+    Instruction {
+        program_id,
+        accounts,
+        data: LendingInstruction::InitNFTReserve { config }.pack(),
     }
 }
 
@@ -1384,6 +1516,59 @@ mod tests {
         assert_eq!(
             instruction.data,
             LendingInstruction::FlashLoan { amount }.pack()
+        );
+    }
+
+    #[test]
+    fn test_init_nft_reserve() {
+        let program_id = Pubkey::new_unique();
+        let config = ReserveConfig {
+            optimal_utilization_rate: 50,
+            loan_to_value_ratio: 1,
+            liquidation_bonus: 10,
+            liquidation_threshold: 5,
+            min_borrow_rate: 2,
+            optimal_borrow_rate: 4,
+            max_borrow_rate: 10,
+            fees: ReserveFees {
+                borrow_fee_wad: 1,
+                flash_loan_fee_wad: 3,
+                host_fee_percentage: 1,
+            },
+        };
+        let destination_collateral_pubkey = Pubkey::new_unique();
+        let reserve_pubkey = Pubkey::new_unique();
+        let reserve_liquidity_mint_pubkey = Pubkey::new_unique();
+        let reserve_liquidity_supply_pubkey = Pubkey::new_unique();
+        let reserve_liquidity_fee_receiver_pubkey = Pubkey::new_unique();
+        let reserve_collateral_mint_pubkey = Pubkey::new_unique();
+        let reserve_collateral_supply_pubkey = Pubkey::new_unique();
+        let pyth_product_pubkey = Pubkey::new_unique();
+        let pyth_price_pubkey = Pubkey::new_unique();
+        let lending_market_pubkey = Pubkey::new_unique();
+        let lending_market_owner_pubkey = Pubkey::new_unique();
+        let user_transfer_authority_pubkey = Pubkey::new_unique();
+        let instruction = init_nft_reserve(
+            program_id,
+            config,
+            destination_collateral_pubkey,
+            reserve_pubkey,
+            reserve_liquidity_mint_pubkey,
+            reserve_liquidity_supply_pubkey,
+            reserve_liquidity_fee_receiver_pubkey,
+            reserve_collateral_mint_pubkey,
+            reserve_collateral_supply_pubkey,
+            pyth_product_pubkey,
+            pyth_price_pubkey,
+            lending_market_pubkey,
+            lending_market_owner_pubkey,
+            user_transfer_authority_pubkey,
+        );
+        assert_eq!(instruction.program_id, program_id);
+        assert_eq!(instruction.accounts.len(), 16);
+        assert_eq!(
+            instruction.data,
+            LendingInstruction::InitNFTReserve { config }.pack()
         );
     }
 }

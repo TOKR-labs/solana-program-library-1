@@ -25,7 +25,7 @@ use {
     },
     spl_token_lending::{
         self,
-        instruction::{init_lending_market, init_reserve},
+        instruction::{init_lending_market, init_nft_reserve, init_reserve},
         math::WAD,
         state::{LendingMarket, Reserve, ReserveConfig, ReserveFees},
     },
@@ -309,6 +309,156 @@ fn main() {
                         .help("Amount of fee going to host account: [0, 100]"),
                 )
         )
+        .subcommand(
+            SubCommand::with_name("add-nft-reserve")
+                .about("Add an nft reserve to a lending market")
+                // @TODO: use is_valid_signer
+                .arg(
+                    Arg::with_name("lending_market_owner")
+                        .long("market-owner")
+                        .validator(is_keypair)
+                        .value_name("KEYPAIR")
+                        .takes_value(true)
+                        .required(true)
+                        .help("Owner of the lending market"),
+                )
+                .arg(
+                    Arg::with_name("lending_market")
+                        .long("market")
+                        .validator(is_pubkey)
+                        .value_name("PUBKEY")
+                        .takes_value(true)
+                        .required(true)
+                        .help("Lending market address"),
+                )
+                .arg(
+                    Arg::with_name("source_liquidity")
+                        .long("source")
+                        .validator(is_pubkey)
+                        .value_name("PUBKEY")
+                        .takes_value(true)
+                        .required(true)
+                        .help("SPL Token account holding nft currently"),
+                )
+                .arg(
+                    Arg::with_name("pyth_product")
+                        .long("pyth-product")
+                        .validator(is_pubkey)
+                        .value_name("PUBKEY")
+                        .takes_value(true)
+                        .required(true)
+                        .help("Pyth product account: https://pyth.network/developers/consumers/accounts"),
+                )
+                .arg(
+                    Arg::with_name("pyth_price")
+                        .long("pyth-price")
+                        .validator(is_pubkey)
+                        .value_name("PUBKEY")
+                        .takes_value(true)
+                        .required(true)
+                        .help("Pyth price account: https://pyth.network/developers/consumers/accounts"),
+                )
+                .arg(
+                    Arg::with_name("optimal_utilization_rate")
+                        .long("optimal-utilization-rate")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("80")
+                        .help("Optimal utilization rate: [0, 100]"),
+                )
+                .arg(
+                    Arg::with_name("loan_to_value_ratio")
+                        .long("loan-to-value-ratio")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("50")
+                        .help("Target ratio of the value of borrows to deposits: [0, 100)"),
+                )
+                .arg(
+                    Arg::with_name("liquidation_bonus")
+                        .long("liquidation-bonus")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("5")
+                        .help("Bonus a liquidator gets when repaying part of an unhealthy obligation: [0, 100]"),
+                )
+                .arg(
+                    Arg::with_name("liquidation_threshold")
+                        .long("liquidation-threshold")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("55")
+                        .help("Loan to value ratio at which an obligation can be liquidated: (LTV, 100]"),
+                )
+                .arg(
+                    Arg::with_name("min_borrow_rate")
+                        .long("min-borrow-rate")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("0")
+                        .help("Min borrow APY: min <= optimal <= max"),
+                )
+                .arg(
+                    Arg::with_name("optimal_borrow_rate")
+                        .long("optimal-borrow-rate")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("4")
+                        .help("Optimal (utilization) borrow APY: min <= optimal <= max"),
+                )
+                .arg(
+                    Arg::with_name("max_borrow_rate")
+                        .long("max-borrow-rate")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("30")
+                        .help("Max borrow APY: min <= optimal <= max"),
+                )
+                .arg(
+                    Arg::with_name("borrow_fee")
+                        .long("borrow-fee")
+                        .validator(is_parsable::<f64>)
+                        .value_name("DECIMAL_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("0.00001")
+                        .help("Fee assessed on borrow, expressed as a percentage: [0, 1)"),
+                )
+                .arg(
+                    Arg::with_name("flash_loan_fee")
+                        .long("flash-loan-fee")
+                        .validator(is_parsable::<f64>)
+                        .value_name("DECIMAL_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value(".3")
+                        .help("Fee assessed for flash loans, expressed as a percentage: [0, 1)"),
+                )
+                .arg(
+                    Arg::with_name("host_fee_percentage")
+                        .long("host-fee-percentage")
+                        .validator(is_parsable::<u8>)
+                        .value_name("INTEGER_PERCENT")
+                        .takes_value(true)
+                        .required(true)
+                        .default_value("20")
+                        .help("Amount of fee going to host account: [0, 100]"),
+                )
+        )
         .get_matches();
 
     let mut wallet_manager = None;
@@ -403,6 +553,51 @@ fn main() {
                 },
                 source_liquidity_pubkey,
                 source_liquidity_owner_keypair,
+                lending_market_pubkey,
+                lending_market_owner_keypair,
+                pyth_product_pubkey,
+                pyth_price_pubkey,
+            )
+        }
+        ("add-nft-reserve", Some(arg_matches)) => {
+            let lending_market_owner_keypair =
+                keypair_of(arg_matches, "lending_market_owner").unwrap();
+            let lending_market_pubkey = pubkey_of(arg_matches, "lending_market").unwrap();
+            let source_liquidity_pubkey = pubkey_of(arg_matches, "source_liquidity").unwrap();
+            let pyth_product_pubkey = pubkey_of(arg_matches, "pyth_product").unwrap();
+            let pyth_price_pubkey = pubkey_of(arg_matches, "pyth_price").unwrap();
+            let optimal_utilization_rate =
+                value_of(arg_matches, "optimal_utilization_rate").unwrap();
+            let loan_to_value_ratio = value_of(arg_matches, "loan_to_value_ratio").unwrap();
+            let liquidation_bonus = value_of(arg_matches, "liquidation_bonus").unwrap();
+            let liquidation_threshold = value_of(arg_matches, "liquidation_threshold").unwrap();
+            let min_borrow_rate = value_of(arg_matches, "min_borrow_rate").unwrap();
+            let optimal_borrow_rate = value_of(arg_matches, "optimal_borrow_rate").unwrap();
+            let max_borrow_rate = value_of(arg_matches, "max_borrow_rate").unwrap();
+            let borrow_fee = value_of::<f64>(arg_matches, "borrow_fee").unwrap();
+            let flash_loan_fee = value_of::<f64>(arg_matches, "flash_loan_fee").unwrap();
+            let host_fee_percentage = value_of(arg_matches, "host_fee_percentage").unwrap();
+
+            let borrow_fee_wad = (borrow_fee * WAD as f64) as u64;
+            let flash_loan_fee_wad = (flash_loan_fee * WAD as f64) as u64;
+
+            command_add_nft_reserve(
+                &config,
+                ReserveConfig {
+                    optimal_utilization_rate,
+                    loan_to_value_ratio,
+                    liquidation_bonus,
+                    liquidation_threshold,
+                    min_borrow_rate,
+                    optimal_borrow_rate,
+                    max_borrow_rate,
+                    fees: ReserveFees {
+                        borrow_fee_wad,
+                        flash_loan_fee_wad,
+                        host_fee_percentage,
+                    },
+                },
+                source_liquidity_pubkey,
                 lending_market_pubkey,
                 lending_market_owner_keypair,
                 pyth_product_pubkey,
@@ -680,6 +875,196 @@ fn command_add_reserve(
         &vec![
             config.fee_payer.as_ref(),
             &source_liquidity_owner_keypair,
+            &lending_market_owner_keypair,
+            &user_transfer_authority_keypair,
+        ],
+        message_3,
+        recent_blockhash,
+    );
+    send_transaction(config, transaction_3)?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn command_add_nft_reserve(
+    config: &Config,
+    reserve_config: ReserveConfig,
+    source_liquidity_pubkey: Pubkey,
+    lending_market_pubkey: Pubkey,
+    lending_market_owner_keypair: Keypair,
+    pyth_product_pubkey: Pubkey,
+    pyth_price_pubkey: Pubkey,
+) -> CommandResult {
+    let source_liquidity_account = config.rpc_client.get_account(&source_liquidity_pubkey)?;
+    let source_liquidity = Token::unpack_from_slice(source_liquidity_account.data.borrow())?;
+    let reserve_keypair = Keypair::new();
+    let collateral_mint_keypair = Keypair::new();
+    let collateral_supply_keypair = Keypair::new();
+    let liquidity_supply_keypair = Keypair::new();
+    let liquidity_fee_receiver_keypair = Keypair::new();
+    let user_collateral_keypair = Keypair::new();
+    let user_transfer_authority_keypair = Keypair::new();
+
+    println!("Adding nft reserve {}", reserve_keypair.pubkey());
+    if config.verbose {
+        println!(
+            "Adding collateral mint {}",
+            collateral_mint_keypair.pubkey()
+        );
+        println!(
+            "Adding collateral supply {}",
+            collateral_supply_keypair.pubkey()
+        );
+        println!(
+            "Adding liquidity supply {}",
+            liquidity_supply_keypair.pubkey()
+        );
+        println!(
+            "Adding liquidity fee receiver {}",
+            liquidity_fee_receiver_keypair.pubkey()
+        );
+        println!(
+            "Adding user collateral {}",
+            user_collateral_keypair.pubkey()
+        );
+        println!(
+            "Adding user transfer authority {}",
+            user_transfer_authority_keypair.pubkey()
+        );
+        println!("Source Liquidity mint {}", source_liquidity.mint);
+    }
+
+    let reserve_balance = config
+        .rpc_client
+        .get_minimum_balance_for_rent_exemption(Reserve::LEN)?;
+    let collateral_mint_balance = config
+        .rpc_client
+        .get_minimum_balance_for_rent_exemption(Mint::LEN)?;
+    let token_account_balance = config
+        .rpc_client
+        .get_minimum_balance_for_rent_exemption(Token::LEN)?;
+    let collateral_supply_balance = token_account_balance;
+    let user_collateral_balance = token_account_balance;
+    let liquidity_supply_balance = token_account_balance;
+    let liquidity_fee_receiver_balance = token_account_balance;
+
+    let total_balance = reserve_balance
+        + collateral_mint_balance
+        + collateral_supply_balance
+        + user_collateral_balance
+        + liquidity_supply_balance
+        + liquidity_fee_receiver_balance;
+
+    let recent_blockhash = config.rpc_client.get_latest_blockhash()?;
+    let message_1 = Message::new_with_blockhash(
+        &[
+            create_account(
+                &config.fee_payer.pubkey(),
+                &reserve_keypair.pubkey(),
+                reserve_balance,
+                Reserve::LEN as u64,
+                &config.lending_program_id,
+            ),
+            create_account(
+                &config.fee_payer.pubkey(),
+                &collateral_mint_keypair.pubkey(),
+                collateral_mint_balance,
+                Mint::LEN as u64,
+                &spl_token::id(),
+            ),
+            create_account(
+                &config.fee_payer.pubkey(),
+                &collateral_supply_keypair.pubkey(),
+                collateral_supply_balance,
+                Token::LEN as u64,
+                &spl_token::id(),
+            ),
+            create_account(
+                &config.fee_payer.pubkey(),
+                &user_collateral_keypair.pubkey(),
+                user_collateral_balance,
+                Token::LEN as u64,
+                &spl_token::id(),
+            ),
+        ],
+        Some(&config.fee_payer.pubkey()),
+        &recent_blockhash,
+    );
+
+    let message_2 = Message::new_with_blockhash(
+        &[
+            create_account(
+                &config.fee_payer.pubkey(),
+                &liquidity_supply_keypair.pubkey(),
+                liquidity_supply_balance,
+                Token::LEN as u64,
+                &spl_token::id(),
+            ),
+            create_account(
+                &config.fee_payer.pubkey(),
+                &liquidity_fee_receiver_keypair.pubkey(),
+                liquidity_fee_receiver_balance,
+                Token::LEN as u64,
+                &spl_token::id(),
+            ),
+        ],
+        Some(&config.fee_payer.pubkey()),
+        &recent_blockhash,
+    );
+
+    let message_3 = Message::new_with_blockhash(
+        &[init_nft_reserve(
+            config.lending_program_id,
+            reserve_config,
+            user_collateral_keypair.pubkey(),
+            reserve_keypair.pubkey(),
+            source_liquidity.mint,
+            liquidity_supply_keypair.pubkey(),
+            liquidity_fee_receiver_keypair.pubkey(),
+            collateral_mint_keypair.pubkey(),
+            collateral_supply_keypair.pubkey(),
+            pyth_product_pubkey,
+            pyth_price_pubkey,
+            lending_market_pubkey,
+            lending_market_owner_keypair.pubkey(),
+            user_transfer_authority_keypair.pubkey(),
+        )],
+        Some(&config.fee_payer.pubkey()),
+        &recent_blockhash,
+    );
+    check_fee_payer_balance(
+        config,
+        total_balance
+            + config.rpc_client.get_fee_for_message(&message_1)?
+            + config.rpc_client.get_fee_for_message(&message_2)?
+            + config.rpc_client.get_fee_for_message(&message_3)?,
+    )?;
+
+    let transaction_1 = Transaction::new(
+        &vec![
+            config.fee_payer.as_ref(),
+            &reserve_keypair,
+            &collateral_mint_keypair,
+            &collateral_supply_keypair,
+            &user_collateral_keypair,
+        ],
+        message_1,
+        recent_blockhash,
+    );
+    send_transaction(config, transaction_1)?;
+    let transaction_2 = Transaction::new(
+        &vec![
+            config.fee_payer.as_ref(),
+            &liquidity_supply_keypair,
+            &liquidity_fee_receiver_keypair,
+        ],
+        message_2,
+        recent_blockhash,
+    );
+    send_transaction(config, transaction_2)?;
+    let transaction_3 = Transaction::new(
+        &vec![
+            config.fee_payer.as_ref(),
             &lending_market_owner_keypair,
             &user_transfer_authority_keypair,
         ],

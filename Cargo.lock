@@ -4041,7 +4041,7 @@ dependencies = [
 
 [[package]]
 name = "spl-token-lending-cli"
-version = "0.1.0"
+version = "0.1.4"
 dependencies = [
  "clap",
  "solana-clap-utils",

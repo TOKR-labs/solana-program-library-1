@@ -13,3 +13,9 @@ test-ledger
 docker-target
 .idea
 .coderrect
+
+venv/
+
+owner.json
+lender.json
+mule.json
