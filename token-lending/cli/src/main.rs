@@ -25,7 +25,7 @@ use {
     },
     spl_token_lending::{
         self,
-        instruction::{init_lending_market, init_reserve},
+        instruction::{init_lending_market, init_nft_reserve, init_reserve},
         math::WAD,
         state::{LendingMarket, Reserve, ReserveConfig, ReserveFees},
     },
@@ -895,7 +895,6 @@ fn command_add_nft_reserve(
     let source_liquidity_mint_account = config.rpc_client.get_account(&source_liquidity.mint)?;
     let source_liquidity_mint =
         Mint::unpack_from_slice(source_liquidity_mint_account.data.borrow())?;
-    let liquidity_amount = ui_amount_to_amount(ui_amount, source_liquidity_mint.decimals);
 
     let reserve_keypair = Keypair::new();
     let collateral_mint_keypair = Keypair::new();
@@ -1012,42 +1011,22 @@ fn command_add_nft_reserve(
     );
 
     let message_3 = Message::new_with_blockhash(
-        &[
-            // approve(
-            //     &spl_token::id(),
-            //     &source_liquidity_pubkey,
-            //     &user_transfer_authority_keypair.pubkey(),
-            //     &source_liquidity_owner_keypair.pubkey(),
-            //     &[],
-            //     liquidity_amount,
-            // )
-            // .unwrap(),
-            init_reserve(
-                config.lending_program_id,
-                liquidity_amount,
-                reserve_config,
-                source_liquidity_pubkey,
-                user_collateral_keypair.pubkey(),
-                reserve_keypair.pubkey(),
-                source_liquidity.mint,
-                liquidity_supply_keypair.pubkey(),
-                liquidity_fee_receiver_keypair.pubkey(),
-                collateral_mint_keypair.pubkey(),
-                collateral_supply_keypair.pubkey(),
-                pyth_product_pubkey,
-                pyth_price_pubkey,
-                lending_market_pubkey,
-                lending_market_owner_keypair.pubkey(),
-                user_transfer_authority_keypair.pubkey(),
-            ),
-            // revoke(
-            //     &spl_token::id(),
-            //     &source_liquidity_pubkey,
-            //     &source_liquidity_owner_keypair.pubkey(),
-            //     &[],
-            // )
-            // .unwrap(),
-        ],
+        &[init_nft_reserve(
+            config.lending_program_id,
+            reserve_config,
+            user_collateral_keypair.pubkey(),
+            reserve_keypair.pubkey(),
+            source_liquidity.mint,
+            liquidity_supply_keypair.pubkey(),
+            liquidity_fee_receiver_keypair.pubkey(),
+            collateral_mint_keypair.pubkey(),
+            collateral_supply_keypair.pubkey(),
+            pyth_product_pubkey,
+            pyth_price_pubkey,
+            lending_market_pubkey,
+            lending_market_owner_keypair.pubkey(),
+            user_transfer_authority_keypair.pubkey(),
+        )],
         Some(&config.fee_payer.pubkey()),
         &recent_blockhash,
     );
