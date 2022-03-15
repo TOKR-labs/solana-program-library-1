@@ -711,3 +711,5 @@ borrowWSol();
 
 // wSol transfer after uing lib:
 // https://explorer.solana.com/tx/4jmVefduUvSzfPXPu9oUvmpgKeC1QqC1zD4EGE5bbTV8vqfLXSXy3D7jsUoW8YvN3t3JWnBZGxju7B32EwNttPjd?cluster=devnet
+
+// Not just any nft could be deposited into reserve as the mint on the reserve would fail on transfer
