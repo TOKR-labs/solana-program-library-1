@@ -7,6 +7,9 @@ const tokenLending = require('@solana/spl-token-lending');
 
 const LENDING_PROGRAM_ID = new solanaWeb3.PublicKey('F3bt6prr5XzKTsv1ELpS2VTfxx1FdYug2rLSkpVmM1fF');
 const LENDING_MARKET_ID = '5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw';
+const seed = LENDING_MARKET_ID.slice(0, 32);
+
+const wrappedSolMint = new solanaWeb3.PublicKey('So11111111111111111111111111111111111111112');
 
 const nftAccount = new solanaWeb3.PublicKey('ASoDVv236dg1QNqGnYcrTVpiYRGRjiVZtvuAVK7N9jnN');
 // NFT Reserve
@@ -45,8 +48,6 @@ const connection = new solanaWeb3.Connection(rpcUrl, 'confirmed');
 const user = solanaWeb3.Keypair.fromSecretKey(nftUserTestKey);
 
 const initObligation = async () => {
-    const seed = LENDING_MARKET_ID.slice(0, 32);
-
     const obligationAddress = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, LENDING_PROGRAM_ID);
 
     console.log(obligationAddress.toString());
@@ -187,8 +188,10 @@ const depositNFTReserveLiquidity = async () => {
 
 // Would this deposit be for the nft reserve or  wrapped sol?
 const depositNFTCollateral = async () => {
-    const userCollateralAccountAddress = await solanaSplToken.getAssociatedTokenAddress(
-        collateralMint,
+    const obligationAddress = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, LENDING_PROGRAM_ID);
+
+    const userNFTCollateralAccountAddress = await solanaSplToken.getAssociatedTokenAddress(
+        nftCollateralMint,
         user.publicKey,
         true,
         solanaSplToken.TOKEN_PROGRAM_ID,
@@ -196,35 +199,49 @@ const depositNFTCollateral = async () => {
     );
 
     const approveTransaction = solanaSplToken.createApproveInstruction(
-        userCollateralAccountAddress,
-        transferAuthority,
+        userNFTCollateralAccountAddress,
+        nftUserTransferAuthority,
         user.publicKey,
-        50
+        1
     );
 
-    const depositInstruction = getCollateralInstructions(
-        50,
-        userCollateralAccountAddress,
-        collateralSupply,
-        reserve,
-        obligation,
+    const depositInstructionThroughLibBuffer = tokenLending.depositObligationCollateralInstruction(
+        1,
+        userNFTCollateralAccountAddress,
+        nftCollateralSupply,
+        nftReserve,
+        obligationAddress,
+        new solanaWeb3.PublicKey(LENDING_MARKET_ID),
+        nftLendingMarketAuthority,
+        user.publicKey,
+        user.publicKey
+    );
+
+    const depositInstructions = getCollateralInstructions(
+        1,
+        userNFTCollateralAccountAddress,
+        nftCollateralSupply,
+        nftReserve,
+        obligationAddress,
         new solanaWeb3.PublicKey(LENDING_MARKET_ID),
         user.publicKey,
         user.publicKey
     );
 
-    // Alternatively, manually construct the transaction
+    // data formatting below is not right, but this one is :/
+    depositInstructions.data = depositInstructionThroughLibBuffer.data;
+
     let recentBlockhash = await connection.getLatestBlockhash();
     let tx = new solanaWeb3.Transaction({
         recentBlockhash: recentBlockhash.blockhash,
         feePayer: user.publicKey,
     });
 
-    const refreshReserve = getRefreshReserveInstruction(reserve, pythPrice);
+    const refreshReserve = getRefreshReserveInstruction(nftReserve, nftPythPrice);
 
     tx.add(refreshReserve);
     tx.add(approveTransaction);
-    tx.add(depositInstruction);
+    tx.add(depositInstructions);
 
     const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
     console.log(result);
@@ -248,6 +265,8 @@ const refreshNFTReserve = async () => {
 };
 
 const borrowWSol = async () => {
+    const obligationAddress = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, LENDING_PROGRAM_ID);
+
     // THIS ACCOUNT MUST BE CREATED. IF IT DOES NOT OFFICIALLY EXIST IT WILL FAIL
     const userDepositLiquidityAccount = await solanaSplToken.getAssociatedTokenAddress(
         wrappedSolMint,
@@ -259,9 +278,10 @@ const borrowWSol = async () => {
 
     console.log('userDepositLiquidityAccount ' + userDepositLiquidityAccount.toString());
 
-    const refreshReserve = getRefreshReserveInstruction(reserve, pythPrice);
+    const refreshWSolReserve = getRefreshReserveInstruction(wSolReserve, wSolPythPrice);
+    const refreshNFTReserve = getRefreshReserveInstruction(nftReserve, nftPythPrice);
 
-    const obligationAccountInfo = await connection.getAccountInfo(obligation);
+    const obligationAccountInfo = await connection.getAccountInfo(obligationAddress);
     let obligationDetails = null;
     const depositReserves = [];
     const borrowReserves = [];
@@ -277,22 +297,36 @@ const borrowWSol = async () => {
     }
 
     const obligationRefreshInstruction = createRefreshObligationInstruction(
-        obligation,
+        obligationAddress,
         depositReserves,
         borrowReserves
     );
 
-    const instruction = createBorrowLiquidityInstructions(
-        10,
-        liquiditySupply,
+    const borrowLiquidityThroughLibBuffer = tokenLending.borrowObligationLiquidityInstruction(
+        0.2 * solanaWeb3.LAMPORTS_PER_SOL,
+        wSolLiquiditySupply,
         userDepositLiquidityAccount,
-        reserve,
-        feeReciever,
-        obligation,
+        wSolReserve,
+        wSolLiquidityFeeReciever,
+        obligationAddress,
         new solanaWeb3.PublicKey(LENDING_MARKET_ID),
-        lendingMarketAuthority,
+        wSolLendingMarketAuthority,
         user.publicKey
     );
+
+    const borrowLiquidityInstruction = createBorrowLiquidityInstructions(
+        0.2 * solanaWeb3.LAMPORTS_PER_SOL,
+        wSolLiquiditySupply,
+        userDepositLiquidityAccount,
+        wSolReserve,
+        wSolLiquidityFeeReciever,
+        obligationAddress,
+        new solanaWeb3.PublicKey(LENDING_MARKET_ID),
+        wSolLendingMarketAuthority,
+        user.publicKey
+    );
+
+    borrowLiquidityInstruction.data = borrowLiquidityThroughLibBuffer.data;
 
     let recentBlockhash = await connection.getLatestBlockhash();
     let tx = new solanaWeb3.Transaction({
@@ -300,10 +334,10 @@ const borrowWSol = async () => {
         feePayer: user.publicKey,
     });
 
-    tx.add(refreshReserve);
-
+    tx.add(refreshNFTReserve);
+    tx.add(refreshWSolReserve);
     tx.add(obligationRefreshInstruction);
-    tx.add(instruction);
+    tx.add(borrowLiquidityInstruction);
 
     // console.log(tx);
 
@@ -391,7 +425,7 @@ const depositWSolReserveLiquidity = async () => {
 // liquidity_amount: u64,
 // @TODO: slippage constraint - https://git.io/JmV67
 // },
-const createBorrowLiquidityInstructionsDONOTUSE = (
+const createBorrowLiquidityInstructions = (
     liquidityAmount,
     sourceLiquidity,
     destinationLiquidity,
@@ -664,11 +698,11 @@ const transferNft = async () => {
 // createCollateralATA();
 // transferNft();
 // depositReserveLiquidity();
-depositNFTReserveLiquidity();
+// depositNFTReserveLiquidity();
 // createWSolCollateralATA();
 // depositWSolReserveLiquidity();
-// depositCollateral();
-// borrow();
+// depositNFTCollateral();
+borrowWSol();
 
 // Transfering "1" wsol, amount is 16777216
 // https://explorer.solana.com/tx/4gCvB6hhR4NQAHdbDVhQoPf9trFHG6h2rcbGj73p8PD4r1NBn8qYKWQP7vMrabDhKXRbM199cNazam6EubukUebq?cluster=devnet
