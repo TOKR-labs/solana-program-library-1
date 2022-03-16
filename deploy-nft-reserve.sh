@@ -5,7 +5,8 @@
 echo "Running deploy script...";
 OWNER_KEYPAIR=$1;
 MARKET_ID="5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw";
-NFT_SOURCE="GwwJV6QyKCb49ymZeoAZich1S7o2R9yemqkR7CXF7UH9";
+ORACLE_ID="GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB";
+NFT_SOURCE="FEW5tzewQvo7gQMR2TEjMDjQmSRwvKjHuCQeQirfc4Dg";
 
 CONFIG=/Users/gmiller/.config/solana/cli/config.yml
 

@@ -21,7 +21,7 @@ pub struct LendingMarket {
     pub quote_currency: [u8; 32],
     /// Token program id
     pub token_program_id: Pubkey,
-    /// Oracle (Pyth) program id
+    /// Oracle program id
     pub oracle_program_id: Pubkey,
 }
 

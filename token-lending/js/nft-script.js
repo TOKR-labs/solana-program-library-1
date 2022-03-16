@@ -702,7 +702,7 @@ const transferNft = async () => {
 // createWSolCollateralATA();
 // depositWSolReserveLiquidity();
 // depositNFTCollateral();
-borrowWSol();
+// borrowWSol();
 
 // Transfering "1" wsol, amount is 16777216
 // https://explorer.solana.com/tx/4gCvB6hhR4NQAHdbDVhQoPf9trFHG6h2rcbGj73p8PD4r1NBn8qYKWQP7vMrabDhKXRbM199cNazam6EubukUebq?cluster=devnet
@@ -713,3 +713,28 @@ borrowWSol();
 // https://explorer.solana.com/tx/4jmVefduUvSzfPXPu9oUvmpgKeC1QqC1zD4EGE5bbTV8vqfLXSXy3D7jsUoW8YvN3t3JWnBZGxju7B32EwNttPjd?cluster=devnet
 
 // Not just any nft could be deposited into reserve as the mint on the reserve would fail on transfer
+
+const createReservePDA = async () => {
+    const reservePDA = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, nftReserve);
+
+    console.log(reservePDA.toString());
+
+    // const tx = new solanaWeb3.Transaction().add(
+    //     solanaWeb3.SystemProgram.createAccountWithSeed({
+    //         fromPubkey: user.publicKey, // funder
+    //         newAccountPubkey: reservePDA,
+    //         basePubkey: user.publicKey,
+    //         seed: seed,
+    //         lamports: 9938880, // 0.1 SOL
+    //         programId: nftReserve,
+    //         space: 1300,
+    //     })
+    // );
+
+    // console.log(tx);
+
+    // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
+    // // confirmed result means the obligation account is
+    // console.log(result);
+};
+createReservePDA();

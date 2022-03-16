@@ -84,7 +84,8 @@ pub enum LendingInstruction {
     ///   0. `[writable]` Reserve account.
     ///   1. `[]` Reserve liquidity oracle account.
     ///             Must be the Pyth price account specified at InitReserve.
-    ///   2. `[]` Clock sysvar.
+    ///   2. `[]` Lending Market.
+    ///   3. `[]` Clock sysvar.
     RefreshReserve,
 
     // 4
@@ -739,8 +740,7 @@ pub fn init_nft_reserve(
     reserve_liquidity_fee_receiver_pubkey: Pubkey,
     reserve_collateral_mint_pubkey: Pubkey,
     reserve_collateral_supply_pubkey: Pubkey,
-    pyth_product_pubkey: Pubkey,
-    pyth_price_pubkey: Pubkey,
+    price_oracle_account: Pubkey,
     lending_market_pubkey: Pubkey,
     lending_market_owner_pubkey: Pubkey,
     user_transfer_authority_pubkey: Pubkey,
@@ -757,8 +757,7 @@ pub fn init_nft_reserve(
         AccountMeta::new(reserve_liquidity_fee_receiver_pubkey, false),
         AccountMeta::new(reserve_collateral_mint_pubkey, false),
         AccountMeta::new(reserve_collateral_supply_pubkey, false),
-        AccountMeta::new_readonly(pyth_product_pubkey, false),
-        AccountMeta::new_readonly(pyth_price_pubkey, false),
+        AccountMeta::new_readonly(price_oracle_account, false),
         AccountMeta::new_readonly(lending_market_pubkey, false),
         AccountMeta::new_readonly(lending_market_authority_pubkey, false),
         AccountMeta::new_readonly(lending_market_owner_pubkey, true),
@@ -779,10 +778,12 @@ pub fn refresh_reserve(
     program_id: Pubkey,
     reserve_pubkey: Pubkey,
     reserve_liquidity_oracle_pubkey: Pubkey,
+    lending_market_pubkey: Pubkey,
 ) -> Instruction {
     let accounts = vec![
         AccountMeta::new(reserve_pubkey, false),
         AccountMeta::new_readonly(reserve_liquidity_oracle_pubkey, false),
+        AccountMeta::new_readonly(lending_market_pubkey, false),
         AccountMeta::new_readonly(sysvar::clock::id(), false),
     ];
     Instruction {
@@ -1232,8 +1233,13 @@ mod tests {
         let program_id = Pubkey::new_unique();
         let reserve_pubkey = Pubkey::new_unique();
         let reserve_liquidity_oracle_pubkey = Pubkey::new_unique();
-        let instruction =
-            refresh_reserve(program_id, reserve_pubkey, reserve_liquidity_oracle_pubkey);
+        let lending_market_pubkey = Pubkey::new_unique();
+        let instruction = refresh_reserve(
+            program_id,
+            reserve_pubkey,
+            reserve_liquidity_oracle_pubkey,
+            lending_market_pubkey,
+        );
         assert_eq!(instruction.program_id, program_id);
         assert_eq!(instruction.accounts.len(), 3);
         assert_eq!(instruction.data, LendingInstruction::RefreshReserve.pack());

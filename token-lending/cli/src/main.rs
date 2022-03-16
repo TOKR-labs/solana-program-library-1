@@ -341,22 +341,13 @@ fn main() {
                         .help("SPL Token account holding nft currently"),
                 )
                 .arg(
-                    Arg::with_name("pyth_product")
-                        .long("pyth-product")
+                    Arg::with_name("oracle_program_id")
+                        .long("oracle")
                         .validator(is_pubkey)
                         .value_name("PUBKEY")
                         .takes_value(true)
                         .required(true)
-                        .help("Pyth product account: https://pyth.network/developers/consumers/accounts"),
-                )
-                .arg(
-                    Arg::with_name("pyth_price")
-                        .long("pyth-price")
-                        .validator(is_pubkey)
-                        .value_name("PUBKEY")
-                        .takes_value(true)
-                        .required(true)
-                        .help("Pyth price account: https://pyth.network/developers/consumers/accounts"),
+                        .help("Oracle program ID for quoting market prices"),
                 )
                 .arg(
                     Arg::with_name("optimal_utilization_rate")
@@ -564,8 +555,7 @@ fn main() {
                 keypair_of(arg_matches, "lending_market_owner").unwrap();
             let lending_market_pubkey = pubkey_of(arg_matches, "lending_market").unwrap();
             let source_liquidity_pubkey = pubkey_of(arg_matches, "source_liquidity").unwrap();
-            let pyth_product_pubkey = pubkey_of(arg_matches, "pyth_product").unwrap();
-            let pyth_price_pubkey = pubkey_of(arg_matches, "pyth_price").unwrap();
+            let price_oracle_pubkey = pubkey_of(arg_matches, "oracle_program_id").unwrap();
             let optimal_utilization_rate =
                 value_of(arg_matches, "optimal_utilization_rate").unwrap();
             let loan_to_value_ratio = value_of(arg_matches, "loan_to_value_ratio").unwrap();
@@ -600,8 +590,7 @@ fn main() {
                 source_liquidity_pubkey,
                 lending_market_pubkey,
                 lending_market_owner_keypair,
-                pyth_product_pubkey,
-                pyth_price_pubkey,
+                price_oracle_pubkey,
             )
         }
         _ => unreachable!(),
@@ -892,11 +881,11 @@ fn command_add_nft_reserve(
     source_liquidity_pubkey: Pubkey,
     lending_market_pubkey: Pubkey,
     lending_market_owner_keypair: Keypair,
-    pyth_product_pubkey: Pubkey,
-    pyth_price_pubkey: Pubkey,
+    price_oracle_pubkey: Pubkey,
 ) -> CommandResult {
     let source_liquidity_account = config.rpc_client.get_account(&source_liquidity_pubkey)?;
     let source_liquidity = Token::unpack_from_slice(source_liquidity_account.data.borrow())?;
+    let price_oracle_account = config.rpc_client.get_account(&price_oracle_pubkey)?;
     let reserve_keypair = Keypair::new();
     let collateral_mint_keypair = Keypair::new();
     let collateral_supply_keypair = Keypair::new();
@@ -932,6 +921,7 @@ fn command_add_nft_reserve(
             user_transfer_authority_keypair.pubkey()
         );
         println!("Source Liquidity mint {}", source_liquidity.mint);
+        println!("Price Token Account {}", price_oracle_account.key);
     }
 
     let reserve_balance = config
@@ -1023,8 +1013,7 @@ fn command_add_nft_reserve(
             liquidity_fee_receiver_keypair.pubkey(),
             collateral_mint_keypair.pubkey(),
             collateral_supply_keypair.pubkey(),
-            pyth_product_pubkey,
-            pyth_price_pubkey,
+            price_oracle_pubkey,
             lending_market_pubkey,
             lending_market_owner_keypair.pubkey(),
             user_transfer_authority_keypair.pubkey(),
