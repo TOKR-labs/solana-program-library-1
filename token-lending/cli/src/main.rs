@@ -45,7 +45,6 @@ type Error = Box<dyn std::error::Error>;
 type CommandResult = Result<(), Error>;
 
 const PYTH_PROGRAM_ID: &str = "gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s";
-const ORACLE_ID: &str = "gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s";
 
 fn main() {
     solana_logger::setup_with_default("solana=info");
@@ -555,7 +554,7 @@ fn main() {
             let lending_market_owner_keypair =
                 keypair_of(arg_matches, "lending_market_owner").unwrap();
             let lending_market_pubkey = pubkey_of(arg_matches, "lending_market").unwrap();
-            let source_nft = pubkey_of(arg_matches, "source_nft").unwrap();
+            let source_nft_pubkey = pubkey_of(arg_matches, "source_nft").unwrap();
             let price_oracle_pubkey = pubkey_of(arg_matches, "oracle_program_id").unwrap();
             let optimal_utilization_rate =
                 value_of(arg_matches, "optimal_utilization_rate").unwrap();
@@ -588,7 +587,7 @@ fn main() {
                         host_fee_percentage,
                     },
                 },
-                source_nft,
+                source_nft_pubkey,
                 lending_market_pubkey,
                 lending_market_owner_keypair,
                 price_oracle_pubkey,
@@ -921,6 +920,7 @@ fn command_add_nft_reserve(
             user_transfer_authority_keypair.pubkey()
         );
         println!("NFT Source Account {}", source_nft_pubkey);
+        println!("NFT Source Token mint {}", source_nft_token.mint);
         println!("Price Token Account {}", price_oracle_pubkey);
     }
 
@@ -1002,13 +1002,32 @@ fn command_add_nft_reserve(
         &recent_blockhash,
     );
 
+    // let message_3 = Message::new_with_blockhash(
+    //     &[init_nft_reserve(
+    //         config.lending_program_id,
+    //         reserve_config,
+    //         user_collateral_keypair.pubkey(),
+    //         reserve_keypair.pubkey(),
+    //         source_nft_token.mint,
+    //         liquidity_supply_keypair.pubkey(),
+    //         liquidity_fee_receiver_keypair.pubkey(),
+    //         collateral_mint_keypair.pubkey(),
+    //         collateral_supply_keypair.pubkey(),
+    //         price_oracle_pubkey,
+    //         lending_market_pubkey,
+    //         lending_market_owner_keypair.pubkey(),
+    //         user_transfer_authority_keypair.pubkey(),
+    //     )],
+    //     Some(&config.fee_payer.pubkey()),
+    //     &recent_blockhash,
+    // );
     let message_3 = Message::new_with_blockhash(
         &[init_nft_reserve(
             config.lending_program_id,
             reserve_config,
             user_collateral_keypair.pubkey(),
             reserve_keypair.pubkey(),
-            source_liquidity.mint,
+            source_nft_token.mint,
             liquidity_supply_keypair.pubkey(),
             liquidity_fee_receiver_keypair.pubkey(),
             collateral_mint_keypair.pubkey(),

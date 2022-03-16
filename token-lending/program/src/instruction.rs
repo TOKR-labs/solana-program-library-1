@@ -322,16 +322,14 @@ pub enum LendingInstruction {
     ///   4. `[writable]` Reserve liquidity fee receiver - uninitialized.
     ///   5. `[writable]` Reserve collateral SPL Token mint - uninitialized.
     ///   6. `[writable]` Reserve collateral token supply - uninitialized.
-    ///   8. `[]` Pyth product account.
-    ///   9. `[]` Pyth price account.
-    ///             This will be used as the reserve liquidity oracle account.
-    ///   10 `[]` Lending market account.
-    ///   11 `[]` Derived lending market authority.
-    ///   12 `[signer]` Lending market owner.
-    ///   13 `[signer]` User transfer authority ($authority).
-    ///   14 `[]` Clock sysvar.
-    ///   15 `[]` Rent sysvar.
-    ///   16 `[]` Token program id.
+    ///   7. `[]` Oracle Price Account.
+    ///   8 `[]` Lending market account.
+    ///   9 `[]` Derived lending market authority.
+    ///   10 `[signer]` Lending market owner.
+    ///   11 `[signer]` User transfer authority ($authority).
+    ///   12 `[]` Clock sysvar.
+    ///   13 `[]` Rent sysvar.
+    ///   14 `[]` Token program id.
     InitNFTReserve {
         /// Reserve configuration values
         config: ReserveConfig,

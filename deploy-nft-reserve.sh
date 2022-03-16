@@ -3,8 +3,8 @@
 # Create NFT with: https://spl.solana.com/token#example-create-a-non-fungible-token
 
 echo "Running deploy script...";
-OWNER_KEYPAIR=$1;
-MARKET_ID="Hg7H54pHPb1nrnUfNqjyv7K98bSTwEobKi6bp2kPKAnA";
+OWNER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-program-owner2.json;
+MARKET_ID="7zdhJZpRMevhePH2DJYnMV9abYWZ5akcgRZEPs4X72DM";
 ORACLE_ID="GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB"; # Token account with 1,000,000 tokens representing $1 million property
 NFT_SOURCE="4De7RWQTHFXCaAn8Frk1tVufbgkjuTueMd1MsMMZuXQv"; # for nft-user2.json 
 
@@ -23,14 +23,13 @@ echo "--fee-payer     $OWNER_KEYPAIR \
   --oracle            $ORACLE_ID \
   --verbose";
 
-NFT_RESERVE_OUTPUT=`spl-token-lending add-nft-reserve \
+NFT_RESERVE_OUTPUT=`target/debug/spl-token-lending add-nft-reserve \
   --fee-payer         $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ID \
   --source            $NFT_SOURCE \
   --oracle            $ORACLE_ID \
-  --verbose \
-  --dry-run`;
+  --verbose`;
 echo "$NFT_RESERVE_OUTPUT";
 
 

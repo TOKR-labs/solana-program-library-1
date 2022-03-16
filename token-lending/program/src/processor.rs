@@ -416,6 +416,7 @@ fn process_init_nft_reserve(
     config: ReserveConfig,
     accounts: &[AccountInfo],
 ) -> ProgramResult {
+    msg!("IN PROCESS INIT NFT RESERVE");
     if config.optimal_utilization_rate > 100 {
         msg!("Optimal utilization rate must be in range [0, 100]");
         return Err(LendingError::InvalidConfig.into());
@@ -454,7 +455,6 @@ fn process_init_nft_reserve(
         msg!("Host fee percentage must be in range [0, 100]");
         return Err(LendingError::InvalidConfig.into());
     }
-
     let account_info_iter = &mut accounts.iter().peekable();
     let destination_collateral_info = next_account_info(account_info_iter)?;
     let reserve_info = next_account_info(account_info_iter)?;
@@ -463,7 +463,6 @@ fn process_init_nft_reserve(
     let reserve_liquidity_fee_receiver_info = next_account_info(account_info_iter)?;
     let reserve_collateral_mint_info = next_account_info(account_info_iter)?;
     let reserve_collateral_supply_info = next_account_info(account_info_iter)?;
-    let pyth_product_info = next_account_info(account_info_iter)?;
     let oracle_price_info = next_account_info(account_info_iter)?;
     let lending_market_info = next_account_info(account_info_iter)?;
     let lending_market_authority_info = next_account_info(account_info_iter)?;
@@ -497,11 +496,6 @@ fn process_init_nft_reserve(
     if !lending_market_owner_info.is_signer {
         msg!("Lending market owner provided must be a signer");
         return Err(LendingError::InvalidSigner.into());
-    }
-
-    if &lending_market.oracle_program_id != pyth_product_info.owner {
-        msg!("Pyth product account provided is not owned by the lending market oracle program");
-        return Err(LendingError::InvalidOracleConfig.into());
     }
 
     let market_price = get_price(lending_market_info, oracle_price_info, clock)?;
