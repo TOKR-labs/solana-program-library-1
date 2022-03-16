@@ -322,16 +322,16 @@ pub enum LendingInstruction {
     ///   4. `[writable]` Reserve liquidity fee receiver - uninitialized.
     ///   5. `[writable]` Reserve collateral SPL Token mint - uninitialized.
     ///   6. `[writable]` Reserve collateral token supply - uninitialized.
-    ///   7. `[]` Pyth product account.
-    ///   8. `[]` Pyth price account.
+    ///   8. `[]` Pyth product account.
+    ///   9. `[]` Pyth price account.
     ///             This will be used as the reserve liquidity oracle account.
-    ///   9 `[]` Lending market account.
-    ///   10 `[]` Derived lending market authority.
-    ///   11 `[signer]` Lending market owner.
-    ///   12 `[signer]` User transfer authority ($authority).
-    ///   13 `[]` Clock sysvar.
-    ///   14 `[]` Rent sysvar.
-    ///   15 `[]` Token program id.
+    ///   10 `[]` Lending market account.
+    ///   11 `[]` Derived lending market authority.
+    ///   12 `[signer]` Lending market owner.
+    ///   13 `[signer]` User transfer authority ($authority).
+    ///   14 `[]` Clock sysvar.
+    ///   15 `[]` Rent sysvar.
+    ///   16 `[]` Token program id.
     InitNFTReserve {
         /// Reserve configuration values
         config: ReserveConfig,
@@ -1549,8 +1549,7 @@ mod tests {
         let reserve_liquidity_fee_receiver_pubkey = Pubkey::new_unique();
         let reserve_collateral_mint_pubkey = Pubkey::new_unique();
         let reserve_collateral_supply_pubkey = Pubkey::new_unique();
-        let pyth_product_pubkey = Pubkey::new_unique();
-        let pyth_price_pubkey = Pubkey::new_unique();
+        let oracle_pubkey = Pubkey::new_unique();
         let lending_market_pubkey = Pubkey::new_unique();
         let lending_market_owner_pubkey = Pubkey::new_unique();
         let user_transfer_authority_pubkey = Pubkey::new_unique();
@@ -1564,8 +1563,7 @@ mod tests {
             reserve_liquidity_fee_receiver_pubkey,
             reserve_collateral_mint_pubkey,
             reserve_collateral_supply_pubkey,
-            pyth_product_pubkey,
-            pyth_price_pubkey,
+            oracle_pubkey,
             lending_market_pubkey,
             lending_market_owner_pubkey,
             user_transfer_authority_pubkey,

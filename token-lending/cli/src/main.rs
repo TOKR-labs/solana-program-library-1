@@ -45,6 +45,7 @@ type Error = Box<dyn std::error::Error>;
 type CommandResult = Result<(), Error>;
 
 const PYTH_PROGRAM_ID: &str = "gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s";
+const ORACLE_ID: &str = "gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s";
 
 fn main() {
     solana_logger::setup_with_default("solana=info");
@@ -332,7 +333,7 @@ fn main() {
                         .help("Lending market address"),
                 )
                 .arg(
-                    Arg::with_name("source_liquidity")
+                    Arg::with_name("source_nft")
                         .long("source")
                         .validator(is_pubkey)
                         .value_name("PUBKEY")
@@ -554,7 +555,7 @@ fn main() {
             let lending_market_owner_keypair =
                 keypair_of(arg_matches, "lending_market_owner").unwrap();
             let lending_market_pubkey = pubkey_of(arg_matches, "lending_market").unwrap();
-            let source_liquidity_pubkey = pubkey_of(arg_matches, "source_liquidity").unwrap();
+            let source_nft = pubkey_of(arg_matches, "source_nft").unwrap();
             let price_oracle_pubkey = pubkey_of(arg_matches, "oracle_program_id").unwrap();
             let optimal_utilization_rate =
                 value_of(arg_matches, "optimal_utilization_rate").unwrap();
@@ -587,7 +588,7 @@ fn main() {
                         host_fee_percentage,
                     },
                 },
-                source_liquidity_pubkey,
+                source_nft,
                 lending_market_pubkey,
                 lending_market_owner_keypair,
                 price_oracle_pubkey,
@@ -878,14 +879,13 @@ fn command_add_reserve(
 fn command_add_nft_reserve(
     config: &Config,
     reserve_config: ReserveConfig,
-    source_liquidity_pubkey: Pubkey,
+    source_nft_pubkey: Pubkey,
     lending_market_pubkey: Pubkey,
     lending_market_owner_keypair: Keypair,
     price_oracle_pubkey: Pubkey,
 ) -> CommandResult {
-    let source_liquidity_account = config.rpc_client.get_account(&source_liquidity_pubkey)?;
-    let source_liquidity = Token::unpack_from_slice(source_liquidity_account.data.borrow())?;
-    let price_oracle_account = config.rpc_client.get_account(&price_oracle_pubkey)?;
+    let source_nft_account = config.rpc_client.get_account(&source_nft_pubkey)?;
+    let source_nft_token = Token::unpack_from_slice(source_nft_account.data.borrow())?;
     let reserve_keypair = Keypair::new();
     let collateral_mint_keypair = Keypair::new();
     let collateral_supply_keypair = Keypair::new();
@@ -920,8 +920,8 @@ fn command_add_nft_reserve(
             "Adding user transfer authority {}",
             user_transfer_authority_keypair.pubkey()
         );
-        println!("Source Liquidity mint {}", source_liquidity.mint);
-        println!("Price Token Account {}", price_oracle_account.key);
+        println!("NFT Source Account {}", source_nft_pubkey);
+        println!("Price Token Account {}", price_oracle_pubkey);
     }
 
     let reserve_balance = config

@@ -38,6 +38,7 @@ AUTHORITY_ADDR=`echo $CREATE_MARKET_OUTPUT | grep "Authority Address" | awk '{pr
 
 echo "Market: $MARKET_ADDR";
 echo "Authority Address: $AUTHORITY_ADDR";
+echo "CREATE_MARKET_OUTPUT: $CREATE_MARKET_OUTPUT";
 
 echo "Creating SOL reserve";
 
