@@ -5,16 +5,16 @@ const BufferLayout = require('buffer-layout');
 const nacl = require('tweetnacl');
 const tokenLending = require('@solana/spl-token-lending');
 
-const LENDING_PROGRAM_ID = new solanaWeb3.PublicKey('F3bt6prr5XzKTsv1ELpS2VTfxx1FdYug2rLSkpVmM1fF');
-const LENDING_MARKET_ID = '5dP7yhL3pX27PdbWg6mKQTjZV9XVVxkYzSPJLwQUmffw';
+const LENDING_PROGRAM_ID = new solanaWeb3.PublicKey('5YUTNRCaXPCLjXLPc1TuHVzRjUHfSuTSkLsVZW6Kp83u');
+const LENDING_MARKET_ID = '7zdhJZpRMevhePH2DJYnMV9abYWZ5akcgRZEPs4X72DM';
 const seed = LENDING_MARKET_ID.slice(0, 32);
 
 const wrappedSolMint = new solanaWeb3.PublicKey('So11111111111111111111111111111111111111112');
 
 const nftAccount = new solanaWeb3.PublicKey('ASoDVv236dg1QNqGnYcrTVpiYRGRjiVZtvuAVK7N9jnN');
 // NFT Reserve
-const nftReserve = new solanaWeb3.PublicKey('BLMePAFi6vY7AVyypTMU24RTYM9ZPbUo8YTxgyLxwLiD');
-const nftCollateralMint = new solanaWeb3.PublicKey('Eg6mcKXyD55pbSzUespoBHRYkAqpyFFRr6R1FcT2qrsq');
+const nftReserve = new solanaWeb3.PublicKey('EqSL3pJahprDTetqMBZSjfLPAmvFGTTzu33urVBg6v5d');
+const nftCollateralMint = new solanaWeb3.PublicKey('9rv7bDg2pLHfeekT9bMGjohAEN69zJBPY8SbbrjTJ7ZE');
 const nftCollateralSupply = new solanaWeb3.PublicKey('ArfCMnvBPLj53xdWMeiEomo9FQniCiDcghxLCTWXoBCi');
 const nftLiquiditySupply = new solanaWeb3.PublicKey('JAt3ggZ4Fye8Ce4z7GfLcdScxwzWhyALTZ5VKpQeDV7k');
 const nftLiquidityFeeReciever = new solanaWeb3.PublicKey('Vnt54Jscbim2wFqGdHrHWfHMzqPK8Rrmh1q7paMdg7t');
@@ -27,13 +27,13 @@ const nftPythPrice = new solanaWeb3.PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyL
 // wSol Reserve
 
 const wSolAccount = new solanaWeb3.PublicKey('7o8CktbeYJemHWiBWC8md55HChpBZwwQBYZMeAfyaQh6');
-const wSolReserve = new solanaWeb3.PublicKey('7AkNHfy7gnEkn1CKYYiPdPDUhx6C56Faf1ox7hVbGAQP');
-const wSolCollateralMint = new solanaWeb3.PublicKey('Gcxw7SCGrW7KG2g5egWjS35hLuQ7z3em48iroRZkCWsn');
-const wSolCollateralSupply = new solanaWeb3.PublicKey('4YX24oZyn7Xr6SR75Xb4UNGkQAeEBqkoastU9GnSw8FZ');
-const wSolLiquiditySupply = new solanaWeb3.PublicKey('76PHeGdPMPSccjy6uSzgZgP1KcJP2wci25UVX6jjt4UT');
-const wSolLiquidityFeeReciever = new solanaWeb3.PublicKey('6eeoiCYEsUCYyX6PH7mkvt4H5KCCAt58N6ZGkgtkQX8Z');
-const wSolUserTransferAuthority = new solanaWeb3.PublicKey('4rdy2gzgwwQDBWP8aV33aVbHMeNXg2KmKnMzL6ipWPSD');
-const wSolLendingMarketAuthority = new solanaWeb3.PublicKey('711KPeFZWwtogZm5vz3fKtBXvw6N9ipdm5KU1EAE3goN');
+const wSolReserve = new solanaWeb3.PublicKey('EqSL3pJahprDTetqMBZSjfLPAmvFGTTzu33urVBg6v5d');
+const wSolCollateralMint = new solanaWeb3.PublicKey('9rv7bDg2pLHfeekT9bMGjohAEN69zJBPY8SbbrjTJ7ZE');
+const wSolCollateralSupply = new solanaWeb3.PublicKey('AzheV77nFfLKw1TMYXr8fUEwPxNAmrMXFVQTG4S2LRES');
+const wSolLiquiditySupply = new solanaWeb3.PublicKey('E1CpSbnpVX3nfyCAUZYsde1EKXvNG9yhj5ZYudxhxmHq');
+const wSolLiquidityFeeReciever = new solanaWeb3.PublicKey('Hf9xqZCCguJBifER4A17KLjQg9biYnzDzWNA2Cr6jqxM');
+const wSolUserTransferAuthority = new solanaWeb3.PublicKey('8okQgxbqF2krpPizsyKmkUu6TW5uGJ2dCSayPZgqRRJR');
+// const wSolLendingMarketAuthority = new solanaWeb3.PublicKey('TBD');
 const wSolPythPrice = new solanaWeb3.PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix');
 
 let nftUserTestKey = Uint8Array.from([
@@ -737,4 +737,28 @@ const createReservePDA = async () => {
     // // confirmed result means the obligation account is
     // console.log(result);
 };
-createReservePDA();
+
+const getBalance = async () => {
+    const fungibleReserve = new solanaWeb3.PublicKey('6ifquCHP8oK9dPVDoMeUBdNhPdt6oJHC5iTTJqK7caYi');
+    let tokenAmount = await connection.getTokenAccountBalance(fungibleReserve);
+    console.log(tokenAmount);
+    // const tx = new solanaWeb3.Transaction().add(
+    //     solanaWeb3.SystemProgram.createAccountWithSeed({
+    //         fromPubkey: user.publicKey, // funder
+    //         newAccountPubkey: reservePDA,
+    //         basePubkey: user.publicKey,
+    //         seed: seed,
+    //         lamports: 9938880, // 0.1 SOL
+    //         programId: nftReserve,
+    //         space: 1300,
+    //     })
+    // );
+
+    // console.log(tx);
+
+    // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
+    // // confirmed result means the obligation account is
+    // console.log(result);
+};
+
+getBalance();

@@ -5,7 +5,7 @@
 echo "Running deploy script...";
 OWNER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-program-owner2.json;
 MARKET_ID="7zdhJZpRMevhePH2DJYnMV9abYWZ5akcgRZEPs4X72DM";
-ORACLE_ID="GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB"; # Token account with 1,000,000 tokens representing $1 million property
+ORACLE_ID="GcF34qAL8SuRrEbj7EAYphUWP2gDZ8uYMGptMaQrhPFY"; # Token account with 1,000,000 tokens representing $1 million property
 NFT_SOURCE="4De7RWQTHFXCaAn8Frk1tVufbgkjuTueMd1MsMMZuXQv"; # for nft-user2.json 
 
 CONFIG=/Users/gmiller/.config/solana/cli/config.yml
