@@ -84,7 +84,8 @@ pub enum LendingInstruction {
     ///   0. `[writable]` Reserve account.
     ///   1. `[]` Reserve liquidity oracle account.
     ///             Must be the Pyth price account specified at InitReserve.
-    ///   2. `[]` Clock sysvar.
+    ///   2. `[]` Lending Market.
+    ///   3. `[]` Clock sysvar.
     RefreshReserve,
 
     // 4
@@ -321,16 +322,14 @@ pub enum LendingInstruction {
     ///   4. `[writable]` Reserve liquidity fee receiver - uninitialized.
     ///   5. `[writable]` Reserve collateral SPL Token mint - uninitialized.
     ///   6. `[writable]` Reserve collateral token supply - uninitialized.
-    ///   7. `[]` Pyth product account.
-    ///   8. `[]` Pyth price account.
-    ///             This will be used as the reserve liquidity oracle account.
-    ///   9 `[]` Lending market account.
-    ///   10 `[]` Derived lending market authority.
-    ///   11 `[signer]` Lending market owner.
-    ///   12 `[signer]` User transfer authority ($authority).
-    ///   13 `[]` Clock sysvar.
-    ///   14 `[]` Rent sysvar.
-    ///   15 `[]` Token program id.
+    ///   7. `[]` Oracle Price Account.
+    ///   8 `[]` Lending market account.
+    ///   9 `[]` Derived lending market authority.
+    ///   10 `[signer]` Lending market owner.
+    ///   11 `[signer]` User transfer authority ($authority).
+    ///   12 `[]` Clock sysvar.
+    ///   13 `[]` Rent sysvar.
+    ///   14 `[]` Token program id.
     InitNFTReserve {
         /// Reserve configuration values
         config: ReserveConfig,
@@ -739,8 +738,7 @@ pub fn init_nft_reserve(
     reserve_liquidity_fee_receiver_pubkey: Pubkey,
     reserve_collateral_mint_pubkey: Pubkey,
     reserve_collateral_supply_pubkey: Pubkey,
-    pyth_product_pubkey: Pubkey,
-    pyth_price_pubkey: Pubkey,
+    price_oracle_account: Pubkey,
     lending_market_pubkey: Pubkey,
     lending_market_owner_pubkey: Pubkey,
     user_transfer_authority_pubkey: Pubkey,
@@ -757,8 +755,7 @@ pub fn init_nft_reserve(
         AccountMeta::new(reserve_liquidity_fee_receiver_pubkey, false),
         AccountMeta::new(reserve_collateral_mint_pubkey, false),
         AccountMeta::new(reserve_collateral_supply_pubkey, false),
-        AccountMeta::new_readonly(pyth_product_pubkey, false),
-        AccountMeta::new_readonly(pyth_price_pubkey, false),
+        AccountMeta::new_readonly(price_oracle_account, false),
         AccountMeta::new_readonly(lending_market_pubkey, false),
         AccountMeta::new_readonly(lending_market_authority_pubkey, false),
         AccountMeta::new_readonly(lending_market_owner_pubkey, true),
@@ -779,10 +776,12 @@ pub fn refresh_reserve(
     program_id: Pubkey,
     reserve_pubkey: Pubkey,
     reserve_liquidity_oracle_pubkey: Pubkey,
+    lending_market_pubkey: Pubkey,
 ) -> Instruction {
     let accounts = vec![
         AccountMeta::new(reserve_pubkey, false),
         AccountMeta::new_readonly(reserve_liquidity_oracle_pubkey, false),
+        AccountMeta::new_readonly(lending_market_pubkey, false),
         AccountMeta::new_readonly(sysvar::clock::id(), false),
     ];
     Instruction {
@@ -1232,8 +1231,13 @@ mod tests {
         let program_id = Pubkey::new_unique();
         let reserve_pubkey = Pubkey::new_unique();
         let reserve_liquidity_oracle_pubkey = Pubkey::new_unique();
-        let instruction =
-            refresh_reserve(program_id, reserve_pubkey, reserve_liquidity_oracle_pubkey);
+        let lending_market_pubkey = Pubkey::new_unique();
+        let instruction = refresh_reserve(
+            program_id,
+            reserve_pubkey,
+            reserve_liquidity_oracle_pubkey,
+            lending_market_pubkey,
+        );
         assert_eq!(instruction.program_id, program_id);
         assert_eq!(instruction.accounts.len(), 3);
         assert_eq!(instruction.data, LendingInstruction::RefreshReserve.pack());
@@ -1543,8 +1547,7 @@ mod tests {
         let reserve_liquidity_fee_receiver_pubkey = Pubkey::new_unique();
         let reserve_collateral_mint_pubkey = Pubkey::new_unique();
         let reserve_collateral_supply_pubkey = Pubkey::new_unique();
-        let pyth_product_pubkey = Pubkey::new_unique();
-        let pyth_price_pubkey = Pubkey::new_unique();
+        let oracle_pubkey = Pubkey::new_unique();
         let lending_market_pubkey = Pubkey::new_unique();
         let lending_market_owner_pubkey = Pubkey::new_unique();
         let user_transfer_authority_pubkey = Pubkey::new_unique();
@@ -1558,8 +1561,7 @@ mod tests {
             reserve_liquidity_fee_receiver_pubkey,
             reserve_collateral_mint_pubkey,
             reserve_collateral_supply_pubkey,
-            pyth_product_pubkey,
-            pyth_price_pubkey,
+            oracle_pubkey,
             lending_market_pubkey,
             lending_market_owner_pubkey,
             user_transfer_authority_pubkey,

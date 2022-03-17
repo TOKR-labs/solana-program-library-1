@@ -307,6 +307,7 @@ fn process_init_reserve(
         return Err(LendingError::InvalidOracleConfig.into());
     }
 
+    // We will always assume pyth is setup for fungible assets
     let market_price = get_pyth_price(pyth_price_info, clock)?;
 
     let authority_signer_seeds = &[
@@ -415,6 +416,7 @@ fn process_init_nft_reserve(
     config: ReserveConfig,
     accounts: &[AccountInfo],
 ) -> ProgramResult {
+    msg!("IN PROCESS INIT NFT RESERVE");
     if config.optimal_utilization_rate > 100 {
         msg!("Optimal utilization rate must be in range [0, 100]");
         return Err(LendingError::InvalidConfig.into());
@@ -453,7 +455,6 @@ fn process_init_nft_reserve(
         msg!("Host fee percentage must be in range [0, 100]");
         return Err(LendingError::InvalidConfig.into());
     }
-
     let account_info_iter = &mut accounts.iter().peekable();
     let destination_collateral_info = next_account_info(account_info_iter)?;
     let reserve_info = next_account_info(account_info_iter)?;
@@ -462,8 +463,7 @@ fn process_init_nft_reserve(
     let reserve_liquidity_fee_receiver_info = next_account_info(account_info_iter)?;
     let reserve_collateral_mint_info = next_account_info(account_info_iter)?;
     let reserve_collateral_supply_info = next_account_info(account_info_iter)?;
-    let pyth_product_info = next_account_info(account_info_iter)?;
-    let pyth_price_info = next_account_info(account_info_iter)?;
+    let oracle_price_info = next_account_info(account_info_iter)?;
     let lending_market_info = next_account_info(account_info_iter)?;
     let lending_market_authority_info = next_account_info(account_info_iter)?;
     let lending_market_owner_info = next_account_info(account_info_iter)?;
@@ -498,48 +498,7 @@ fn process_init_nft_reserve(
         return Err(LendingError::InvalidSigner.into());
     }
 
-    if &lending_market.oracle_program_id != pyth_product_info.owner {
-        msg!("Pyth product account provided is not owned by the lending market oracle program");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-    if &lending_market.oracle_program_id != pyth_price_info.owner {
-        msg!("Pyth price account provided is not owned by the lending market oracle program");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-
-    let pyth_product_data = pyth_product_info.try_borrow_data()?;
-    let pyth_product = pyth::load::<pyth::Product>(&pyth_product_data)
-        .map_err(|_| ProgramError::InvalidAccountData)?;
-    if pyth_product.magic != pyth::MAGIC {
-        msg!("Pyth product account provided is not a valid Pyth account");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-    if pyth_product.ver != pyth::VERSION_2 {
-        msg!("Pyth product account provided has a different version than expected");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-    if pyth_product.atype != pyth::AccountType::Product as u32 {
-        msg!("Pyth product account provided is not a valid Pyth product account");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-
-    let pyth_price_pubkey_bytes: &[u8; 32] = pyth_price_info
-        .key
-        .as_ref()
-        .try_into()
-        .map_err(|_| LendingError::InvalidAccountInput)?;
-    if &pyth_product.px_acc.val != pyth_price_pubkey_bytes {
-        msg!("Pyth product price account does not match the Pyth price provided");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-
-    let quote_currency = get_pyth_product_quote_currency(pyth_product)?;
-    if lending_market.quote_currency != quote_currency {
-        msg!("Lending market quote currency does not match the oracle quote currency");
-        return Err(LendingError::InvalidOracleConfig.into());
-    }
-
-    let market_price = get_pyth_price(pyth_price_info, clock)?;
+    let market_price = get_price(lending_market_info, oracle_price_info, clock)?;
 
     let authority_signer_seeds = &[
         lending_market_info.key.as_ref(),
@@ -568,7 +527,7 @@ fn process_init_nft_reserve(
             mint_decimals: reserve_liquidity_mint.decimals,
             supply_pubkey: *reserve_liquidity_supply_info.key,
             fee_receiver: *reserve_liquidity_fee_receiver_info.key,
-            oracle_pubkey: *pyth_price_info.key,
+            oracle_pubkey: *oracle_price_info.key,
             market_price,
         }),
         collateral: ReserveCollateral::new(NewReserveCollateralParams {
@@ -627,6 +586,7 @@ fn process_refresh_reserve(program_id: &Pubkey, accounts: &[AccountInfo]) -> Pro
     let account_info_iter = &mut accounts.iter().peekable();
     let reserve_info = next_account_info(account_info_iter)?;
     let reserve_liquidity_oracle_info = next_account_info(account_info_iter)?;
+    let lending_market_info = next_account_info(account_info_iter)?;
     let clock = &Clock::from_account_info(next_account_info(account_info_iter)?)?;
 
     let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;
@@ -639,8 +599,8 @@ fn process_refresh_reserve(program_id: &Pubkey, accounts: &[AccountInfo]) -> Pro
         return Err(LendingError::InvalidAccountInput.into());
     }
 
-    reserve.liquidity.market_price = get_pyth_price(reserve_liquidity_oracle_info, clock)?;
-
+    reserve.liquidity.market_price =
+        get_price(lending_market_info, reserve_liquidity_oracle_info, clock)?;
     reserve.accrue_interest(clock.slot)?;
     reserve.last_update.update_slot(clock.slot);
     Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;
@@ -1978,6 +1938,26 @@ fn get_pyth_product_quote_currency(pyth_product: &pyth::Product) -> Result<[u8; 
 
     msg!("Pyth product quote currency not found");
     Err(LendingError::InvalidOracleConfig.into())
+}
+
+fn get_price(
+    lending_market_info: &AccountInfo,
+    price_oracle_info: &AccountInfo,
+    clock: &Clock,
+) -> Result<Decimal, ProgramError> {
+    let lending_market = LendingMarket::unpack(&lending_market_info.data.borrow())?;
+
+    // If the market oracle is not the same as the price oracle, we will assume it is our bespoked 1:1 usd account
+    let market_price = if lending_market.oracle_program_id != *price_oracle_info.key {
+        msg!("Getting price!");
+        let res = Account::unpack(&price_oracle_info.data.borrow())?.amount;
+        msg!("Amount from price oracle is {}", res);
+        Decimal::from(res)
+    } else {
+        return get_pyth_price(price_oracle_info, clock);
+    };
+
+    Ok(market_price)
 }
 
 fn get_pyth_price(pyth_price_info: &AccountInfo, clock: &Clock) -> Result<Decimal, ProgramError> {

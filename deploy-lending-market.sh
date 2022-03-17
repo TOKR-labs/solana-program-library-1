@@ -1,8 +1,8 @@
 #!/bin/bash
 echo "Running deploy script...";
-OWNER_KEYPAIR=$1;
-LENDER_KEYPAIR=$2;
-CONFIG=/Users/gmiller/.config/solana/cli/config.yml
+OWNER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-program-owner2.json;
+LENDER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-lender-oracle4.json;
+CONFIG=/Users/gmiller/.config/solana/cli/config.yml;
 
 solana config set --url https://api.devnet.solana.com -k $OWNER_KEYPAIR;
 # Get OWNER from keypair_path key of the solana config file
@@ -20,17 +20,17 @@ echo "Lender address: $LENDER_ADDRESS";
 echo "Creating Lending Program";
 CREATE_PROGRAM_OUTPUT=`solana program --config $CONFIG deploy \
   --program-id $LENDER_KEYPAIR \
-  --max-len 1018445 \
+  --max-len 1241933 \
   target/deploy/spl_token_lending.so`;
 echo "$CREATE_PROGRAM_OUTPUT";
 
 echo "Creating Lending Market";
-CREATE_MARKET_OUTPUT=`spl-token-lending create-market \
+CREATE_MARKET_OUTPUT=`target/debug/spl-token-lending create-market \
   --fee-payer    $OWNER_KEYPAIR \
   --market-owner $OWNER_ADDRESS \
   --verbose`;
 
-WRAPPED_SOL=`spl-token wrap 10 2>&1 | head -n1 | awk '{print $NF}'`;
+WRAPPED_SOL=`spl-token wrap 2 2>&1 | head -n1 | awk '{print $NF}'`;
 
 echo "$CREATE_MARKET_OUTPUT";
 MARKET_ADDR=`echo $CREATE_MARKET_OUTPUT | head -n1 | awk '{print $4}'`;
@@ -38,6 +38,7 @@ AUTHORITY_ADDR=`echo $CREATE_MARKET_OUTPUT | grep "Authority Address" | awk '{pr
 
 echo "Market: $MARKET_ADDR";
 echo "Authority Address: $AUTHORITY_ADDR";
+echo "CREATE_MARKET_OUTPUT: $CREATE_MARKET_OUTPUT";
 
 echo "Creating SOL reserve";
 
@@ -46,22 +47,37 @@ echo "--fee-payer $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ADDR \
   --source            $WRAPPED_SOL \
-  --amount            9  \
+  --amount            1  \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose";
 
-SOL_RESERVE_OUTPUT=`spl-token-lending add-reserve \
+SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
   --fee-payer         $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ADDR \
   --source            $WRAPPED_SOL \
-  --amount            9  \
+  --amount            1  \
   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
   --verbose`;
 echo "$SOL_RESERVE_OUTPUT";
+
+
+
+# NFT_SOURCE="4De7RWQTHFXCaAn8Frk1tVufbgkjuTueMd1MsMMZuXQv"; # for nft-user2.json 
+# ORACLE_ID="GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB"; # Token account with 1,000,000 tokens representing $1 million property
+
+
+# NFT_RESERVE_OUTPUT=`target/debug/spl-token-lending add-nft-reserve \
+#   --fee-payer         $OWNER_KEYPAIR \
+#   --market-owner      $OWNER_KEYPAIR \
+#   --market            $MARKET_ADDR \
+#   --source            $NFT_SOURCE \
+#   --oracle            $ORACLE_ID \
+#   --verbose`;
+# echo "$NFT_RESERVE_OUTPUT";
 
 # # USDC Reserve
 # echo "Creating USDC Reserve";
