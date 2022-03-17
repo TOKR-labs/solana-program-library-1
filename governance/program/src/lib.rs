@@ -12,6 +12,8 @@ pub mod tools;
 // Export current sdk types for downstream users building with a different sdk version
 pub use solana_program;
 
+// Tokr governance id
+solana_program::declare_id!("ToKriDd3YyUxPjbDamXpAZKQMAFMGjhzbgGiGjGbCxt");
 /// Seed prefix for Governance  PDAs
 /// Note: This prefix is used for the initial set of PDAs and shouldn't be used for any new accounts
 /// All new PDAs should use a unique prefix to guarantee uniqueness for each account
