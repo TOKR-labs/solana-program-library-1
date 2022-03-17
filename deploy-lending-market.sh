@@ -1,8 +1,7 @@
 #!/bin/bash
 echo "Running deploy script...";
-OWNER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-program-owner2.json;
-LENDER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-lender-oracle4.json;
-CONFIG=/Users/gmiller/.config/solana/cli/config.yml;
+OWNER_KEYPAIR=$1;
+LENDER_KEYPAIR=$2;
 
 solana config set --url https://api.devnet.solana.com -k $OWNER_KEYPAIR;
 # Get OWNER from keypair_path key of the solana config file
@@ -18,7 +17,7 @@ echo "Owner address: $OWNER_ADDRESS";
 echo "Lender address: $LENDER_ADDRESS";
 
 echo "Creating Lending Program";
-CREATE_PROGRAM_OUTPUT=`solana program --config $CONFIG deploy \
+CREATE_PROGRAM_OUTPUT=`solana program deploy \
   --program-id $LENDER_KEYPAIR \
   --max-len 1241933 \
   target/deploy/spl_token_lending.so`;
@@ -30,7 +29,7 @@ CREATE_MARKET_OUTPUT=`target/debug/spl-token-lending create-market \
   --market-owner $OWNER_ADDRESS \
   --verbose`;
 
-WRAPPED_SOL=`spl-token wrap 2 2>&1 | head -n1 | awk '{print $NF}'`;
+# WRAPPED_SOL=`spl-token wrap 2 2>&1 | head -n1 | awk '{print $NF}'`;
 
 echo "$CREATE_MARKET_OUTPUT";
 MARKET_ADDR=`echo $CREATE_MARKET_OUTPUT | head -n1 | awk '{print $4}'`;
@@ -40,81 +39,61 @@ echo "Market: $MARKET_ADDR";
 echo "Authority Address: $AUTHORITY_ADDR";
 echo "CREATE_MARKET_OUTPUT: $CREATE_MARKET_OUTPUT";
 
-echo "Creating SOL reserve";
+echo "Creating USDC reserve";
 
-echo "--fee-payer $OWNER_KEYPAIR \
-  --market-owner      $OWNER_KEYPAIR \
-  --source-owner      $OWNER_KEYPAIR \
-  --market            $MARKET_ADDR \
-  --source            $WRAPPED_SOL \
-  --amount            1  \
-  --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
-  --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
-  --verbose";
+# SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
+#   --fee-payer         $OWNER_KEYPAIR \
+#   --market-owner      $OWNER_KEYPAIR \
+#   --source-owner      $OWNER_KEYPAIR \
+#   --market            $MARKET_ADDR \
+#   --source            $WRAPPED_SOL \
+#   --amount            100  \
+#   --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
+#   --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
+#   --optimal-utilization-rate 100 \
+#   --loan-to-value-ratio 80      \
+#   --liquidation-bonus 1 \
+#   --liquidation-threshold 100 \
+#   --min-borrow-rate 0   \
+#   --optimal-borrow-rate  5 \
+#   --max-borrow-rate 150 \
+#   --host-fee-percentage 0 \
+#   --verbose`;
+# echo "$SOL_RESERVE_OUTPUT";
 
-SOL_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
+
+# USDC Reserve
+echo "Creating USDC Reserve";
+USDC_TOKEN=`spl-token create-token --decimals 6 2>&1 | head -n1 | awk '{print $NF}'`;
+USDC_TOKEN_ACCOUNT=`spl-token create-account $USDC_TOKEN  2>&1 | head -n1 | awk '{print $NF}'`;
+echo "TOKEN: $USDC_TOKEN";
+echo "ACCOUNT: $USDC_TOKEN_ACCOUNT";
+
+MINT=`spl-token mint $USDC_TOKEN 30000000`;
+
+USDC_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
   --fee-payer         $OWNER_KEYPAIR \
   --market-owner      $OWNER_KEYPAIR \
   --source-owner      $OWNER_KEYPAIR \
   --market            $MARKET_ADDR \
-  --source            $WRAPPED_SOL \
-  --amount            1  \
-  --pyth-product      3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E \
-  --pyth-price        J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix \
+  --source            $USDC_TOKEN_ACCOUNT \
+  --amount            10000000  \
+  --pyth-product      6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA \
+  --pyth-price        5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7 \
+  --optimal-utilization-rate 100 \
+  --loan-to-value-ratio 80      \
+  --liquidation-bonus 1 \
+  --liquidation-threshold 100 \
+  --min-borrow-rate 0   \
+  --optimal-borrow-rate  5 \
+  --max-borrow-rate 150 \
+  --host-fee-percentage 0 \
   --verbose`;
-echo "$SOL_RESERVE_OUTPUT";
-
-
-
-# NFT_SOURCE="4De7RWQTHFXCaAn8Frk1tVufbgkjuTueMd1MsMMZuXQv"; # for nft-user2.json 
-# ORACLE_ID="GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB"; # Token account with 1,000,000 tokens representing $1 million property
-
-
-# NFT_RESERVE_OUTPUT=`target/debug/spl-token-lending add-nft-reserve \
-#   --fee-payer         $OWNER_KEYPAIR \
-#   --market-owner      $OWNER_KEYPAIR \
-#   --market            $MARKET_ADDR \
-#   --source            $NFT_SOURCE \
-#   --oracle            $ORACLE_ID \
-#   --verbose`;
-# echo "$NFT_RESERVE_OUTPUT";
-
-# # USDC Reserve
-# echo "Creating USDC Reserve";
-# USDC_TOKEN_MINT=`target/debug/spl-token --config $SOLANA_CONFIG create-token --decimals 6 |  awk '{print $3}'`;
-# echo "USDC MINT: $USDC_TOKEN_MINT"
-# USDC_TOKEN_ACCOUNT=`target/debug/spl-token --config $SOLANA_CONFIG create-account $USDC_TOKEN_MINT | awk '{print $3}'`;
-# target/debug/spl-token --config $SOLANA_CONFIG mint $USDC_TOKEN_MINT 30000000;
-
-# USDC_RESERVE_OUTPUT=`target/debug/spl-token-lending add-reserve \
-#   --fee-payer         $OWNER \
-#   --market-owner      $OWNER \
-#   --source-owner      $OWNER \
-#   --market            $MARKET_ADDR \
-#   --source            $USDC_TOKEN_ACCOUNT \
-#   --amount            500000  \
-#   --pyth-product      6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA \
-#   --pyth-price        5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7 \
-#   --switchboard-feed  CZx29wKMUxaJDq6aLVQTdViPL754tTR64NAgQBUGxxHb \
-#   --optimal-utilization-rate 80 \
-#   --loan-to-value-ratio 75      \
-#   --liquidation-bonus 5 \
-#   --liquidation-threshold 80 \
-#   --min-borrow-rate 0   \
-#   --optimal-borrow-rate  8 \
-#   --max-borrow-rate 50 \
-#   --host-fee-percentage 50 \
-#   --deposit-limit 1000000 \
-#   --verbose`;
-# echo "$USDC_RESERVE_OUTPUT"
-
-
-spl-token unwrap;
+echo "$USDC_RESERVE_OUTPUT"
 
 # # Export variables for new config.ts file
-CONFIG_TEMPLATE_FILE="https://raw.githubusercontent.com/solendprotocol/common/master/src/devnet_template.json"
 # # Token Mints
-# export USDC_MINT_ADDRESS="$USDC_TOKEN_MINT";
+export USDC_MINT_ADDRESS="$USDC_TOKEN_MINT";
 # export ETH_MINT_ADDRESS="$ETH_TOKEN_MINT";
 # export BTC_MINT_ADDRESS="$BTC_TOKEN_MINT";
 
@@ -123,17 +102,17 @@ export MAIN_MARKET_ADDRESS="$MARKET_ADDR";
 export MAIN_MARKET_AUTHORITY_ADDRESS="$AUTHORITY_ADDR";
 
 # Reserves
-export SOL_RESERVE_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding reserve" | awk '{print $NF}'`;
-export SOL_RESERVE_COLLATERAL_MINT_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding collateral mint" | awk '{print $NF}'`;
-export SOL_RESERVE_COLLATERAL_SUPPLY_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding collateral supply" | awk '{print $NF}'`;
-export SOL_RESERVE_LIQUIDITY_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding liquidity supply" | awk '{print $NF}'`;
-export SOL_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
+# export SOL_RESERVE_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding reserve" | awk '{print $NF}'`;
+# export SOL_RESERVE_COLLATERAL_MINT_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding collateral mint" | awk '{print $NF}'`;
+# export SOL_RESERVE_COLLATERAL_SUPPLY_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding collateral supply" | awk '{print $NF}'`;
+# export SOL_RESERVE_LIQUIDITY_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding liquidity supply" | awk '{print $NF}'`;
+# export SOL_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$SOL_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
 
-# export USDC_RESERVE_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding reserve" | awk '{print $NF}'`;
-# export USDC_RESERVE_COLLATERAL_MINT_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding collateral mint" | awk '{print $NF}'`;
-# export USDC_RESERVE_COLLATERAL_SUPPLY_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding collateral supply" | awk '{print $NF}'`;
-# export USDC_RESERVE_LIQUIDITY_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding liquidity supply" | awk '{print $NF}'`;
-# export USDC_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
+export USDC_RESERVE_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding reserve" | awk '{print $NF}'`;
+export USDC_RESERVE_COLLATERAL_MINT_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding collateral mint" | awk '{print $NF}'`;
+export USDC_RESERVE_COLLATERAL_SUPPLY_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding collateral supply" | awk '{print $NF}'`;
+export USDC_RESERVE_LIQUIDITY_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding liquidity supply" | awk '{print $NF}'`;
+export USDC_RESERVE_LIQUIDITY_FEE_RECEIVER_ADDRESS=`echo "$USDC_RESERVE_OUTPUT" | grep "Adding liquidity fee receiver" | awk '{print $NF}'`;
 
 # # Run templating command 
 # curl $CONFIG_TEMPLATE_FILE | envsubst 

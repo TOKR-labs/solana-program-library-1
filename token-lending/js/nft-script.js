@@ -5,47 +5,47 @@ const BufferLayout = require('buffer-layout');
 const nacl = require('tweetnacl');
 const tokenLending = require('@solana/spl-token-lending');
 
-const LENDING_PROGRAM_ID = new solanaWeb3.PublicKey('5YUTNRCaXPCLjXLPc1TuHVzRjUHfSuTSkLsVZW6Kp83u');
-const LENDING_MARKET_ID = '7zdhJZpRMevhePH2DJYnMV9abYWZ5akcgRZEPs4X72DM';
+const LENDING_PROGRAM_ID = new solanaWeb3.PublicKey('Tok7vSkMxwSxeLuTn4L1AucgBmEsjLMtHEijybaW2dq');
+const LENDING_MARKET_ID = 'DeR5tUHMNNbBkBNQfhpbjUQFkEEAcZHKjAhfZky5WKG';
 const seed = LENDING_MARKET_ID.slice(0, 32);
 
 const wrappedSolMint = new solanaWeb3.PublicKey('So11111111111111111111111111111111111111112');
 
-const nftAccount = new solanaWeb3.PublicKey('ASoDVv236dg1QNqGnYcrTVpiYRGRjiVZtvuAVK7N9jnN');
-// NFT Reserve
-const nftReserve = new solanaWeb3.PublicKey('EqSL3pJahprDTetqMBZSjfLPAmvFGTTzu33urVBg6v5d');
-const nftCollateralMint = new solanaWeb3.PublicKey('9rv7bDg2pLHfeekT9bMGjohAEN69zJBPY8SbbrjTJ7ZE');
-const nftCollateralSupply = new solanaWeb3.PublicKey('ArfCMnvBPLj53xdWMeiEomo9FQniCiDcghxLCTWXoBCi');
-const nftLiquiditySupply = new solanaWeb3.PublicKey('JAt3ggZ4Fye8Ce4z7GfLcdScxwzWhyALTZ5VKpQeDV7k');
-const nftLiquidityFeeReciever = new solanaWeb3.PublicKey('Vnt54Jscbim2wFqGdHrHWfHMzqPK8Rrmh1q7paMdg7t');
-const nftUserTransferAuthority = new solanaWeb3.PublicKey('8o9iHavm8Z8ryLTptu62J7DU6Je2qx3kdVMcmAqwTisg');
-const nftLendingMarketAuthority = new solanaWeb3.PublicKey('711KPeFZWwtogZm5vz3fKtBXvw6N9ipdm5KU1EAE3goN');
-const nftPythPrice = new solanaWeb3.PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix');
+// const nftAccount = new solanaWeb3.PublicKey('ASoDVv236dg1QNqGnYcrTVpiYRGRjiVZtvuAVK7N9jnN');
+// // NFT Reserve
+// const nftReserve = new solanaWeb3.PublicKey('EqSL3pJahprDTetqMBZSjfLPAmvFGTTzu33urVBg6v5d');
+// const nftCollateralMint = new solanaWeb3.PublicKey('9rv7bDg2pLHfeekT9bMGjohAEN69zJBPY8SbbrjTJ7ZE');
+// const nftCollateralSupply = new solanaWeb3.PublicKey('ArfCMnvBPLj53xdWMeiEomo9FQniCiDcghxLCTWXoBCi');
+// const nftLiquiditySupply = new solanaWeb3.PublicKey('JAt3ggZ4Fye8Ce4z7GfLcdScxwzWhyALTZ5VKpQeDV7k');
+// const nftLiquidityFeeReciever = new solanaWeb3.PublicKey('Vnt54Jscbim2wFqGdHrHWfHMzqPK8Rrmh1q7paMdg7t');
+// const nftUserTransferAuthority = new solanaWeb3.PublicKey('8o9iHavm8Z8ryLTptu62J7DU6Je2qx3kdVMcmAqwTisg');
+// const nftLendingMarketAuthority = new solanaWeb3.PublicKey('711KPeFZWwtogZm5vz3fKtBXvw6N9ipdm5KU1EAE3goN');
+// const nftPythPrice = new solanaWeb3.PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix');
 
 // ONLY has 1 wsol. Hopefully we can borrow a small amount.
 //TODO: input vals for this reserve.
 // wSol Reserve
 
 const wSolAccount = new solanaWeb3.PublicKey('7o8CktbeYJemHWiBWC8md55HChpBZwwQBYZMeAfyaQh6');
-const wSolReserve = new solanaWeb3.PublicKey('EqSL3pJahprDTetqMBZSjfLPAmvFGTTzu33urVBg6v5d');
-const wSolCollateralMint = new solanaWeb3.PublicKey('9rv7bDg2pLHfeekT9bMGjohAEN69zJBPY8SbbrjTJ7ZE');
-const wSolCollateralSupply = new solanaWeb3.PublicKey('AzheV77nFfLKw1TMYXr8fUEwPxNAmrMXFVQTG4S2LRES');
-const wSolLiquiditySupply = new solanaWeb3.PublicKey('E1CpSbnpVX3nfyCAUZYsde1EKXvNG9yhj5ZYudxhxmHq');
-const wSolLiquidityFeeReciever = new solanaWeb3.PublicKey('Hf9xqZCCguJBifER4A17KLjQg9biYnzDzWNA2Cr6jqxM');
-const wSolUserTransferAuthority = new solanaWeb3.PublicKey('8okQgxbqF2krpPizsyKmkUu6TW5uGJ2dCSayPZgqRRJR');
+const wSolReserve = new solanaWeb3.PublicKey('4XCbN8BnThuiwU9fzLmZLjWMVWKhDb5Erv8qrLGkyqrQ');
+const wSolCollateralMint = new solanaWeb3.PublicKey('6zV8dsA3EvYHQra9Qxvvy4t5ShC2G2rGwytep9i1mhUX');
+const wSolCollateralSupply = new solanaWeb3.PublicKey('AnbrNvSfbLQWML9RQJSbzAPGp4PqmKa1sNMiXHJe4uiP');
+const wSolLiquiditySupply = new solanaWeb3.PublicKey('FzGu3aGGGPpUJc5jiM7gpvq3w9JUkL16pMPpUTbj7Cr3');
+const wSolLiquidityFeeReciever = new solanaWeb3.PublicKey('6G38wPoBTGVLcXjTL7hNVe1d7oLxLkAgoj1a5awiL1df');
+const wSolUserTransferAuthority = new solanaWeb3.PublicKey('9rTtUhDdjh4zfqE8DF4pmvca7xCsvZ7CmJHJzurdeWeC');
 // const wSolLendingMarketAuthority = new solanaWeb3.PublicKey('TBD');
 const wSolPythPrice = new solanaWeb3.PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix');
 
-let nftUserTestKey = Uint8Array.from([
-    76, 154, 241, 117, 113, 196, 30, 176, 132, 164, 150, 154, 32, 149, 220, 219, 97, 195, 207, 93, 74, 160, 0, 36, 214,
-    140, 41, 132, 1, 116, 190, 192, 186, 52, 76, 48, 219, 183, 90, 35, 108, 11, 236, 75, 175, 81, 116, 77, 251, 123,
-    168, 67, 154, 75, 31, 195, 163, 20, 197, 114, 60, 11, 111, 87,
+let tokrDemoUser = Uint8Array.from([
+    174, 138, 165, 251, 36, 203, 116, 99, 56, 234, 233, 237, 171, 237, 158, 46, 29, 183, 46, 233, 174, 164, 190, 121,
+    174, 100, 81, 36, 151, 3, 69, 24, 235, 132, 29, 250, 147, 46, 190, 200, 50, 228, 73, 197, 174, 98, 71, 193, 51, 211,
+    24, 158, 202, 170, 42, 131, 22, 120, 237, 221, 44, 195, 228, 94,
 ]);
 // connection
 rpcUrl = 'https://api.devnet.solana.com';
 const connection = new solanaWeb3.Connection(rpcUrl, 'confirmed');
 
-const user = solanaWeb3.Keypair.fromSecretKey(nftUserTestKey);
+const user = solanaWeb3.Keypair.fromSecretKey(tokrDemoUser);
 
 const initObligation = async () => {
     const obligationAddress = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, LENDING_PROGRAM_ID);
@@ -694,10 +694,8 @@ const transferNft = async () => {
     console.log(instruction);
 };
 
-// initObligation();
+initObligation();
 // createCollateralATA();
-// transferNft();
-// depositReserveLiquidity();
 // depositNFTReserveLiquidity();
 // createWSolCollateralATA();
 // depositWSolReserveLiquidity();
@@ -714,51 +712,51 @@ const transferNft = async () => {
 
 // Not just any nft could be deposited into reserve as the mint on the reserve would fail on transfer
 
-const createReservePDA = async () => {
-    const reservePDA = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, nftReserve);
+// const createReservePDA = async () => {
+//     const reservePDA = await solanaWeb3.PublicKey.createWithSeed(user.publicKey, seed, nftReserve);
 
-    console.log(reservePDA.toString());
+//     console.log(reservePDA.toString());
 
-    // const tx = new solanaWeb3.Transaction().add(
-    //     solanaWeb3.SystemProgram.createAccountWithSeed({
-    //         fromPubkey: user.publicKey, // funder
-    //         newAccountPubkey: reservePDA,
-    //         basePubkey: user.publicKey,
-    //         seed: seed,
-    //         lamports: 9938880, // 0.1 SOL
-    //         programId: nftReserve,
-    //         space: 1300,
-    //     })
-    // );
+//     // const tx = new solanaWeb3.Transaction().add(
+//     //     solanaWeb3.SystemProgram.createAccountWithSeed({
+//     //         fromPubkey: user.publicKey, // funder
+//     //         newAccountPubkey: reservePDA,
+//     //         basePubkey: user.publicKey,
+//     //         seed: seed,
+//     //         lamports: 9938880, // 0.1 SOL
+//     //         programId: nftReserve,
+//     //         space: 1300,
+//     //     })
+//     // );
 
-    // console.log(tx);
+//     // console.log(tx);
 
-    // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
-    // // confirmed result means the obligation account is
-    // console.log(result);
-};
+//     // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
+//     // // confirmed result means the obligation account is
+//     // console.log(result);
+// };
 
-const getBalance = async () => {
-    const fungibleReserve = new solanaWeb3.PublicKey('6ifquCHP8oK9dPVDoMeUBdNhPdt6oJHC5iTTJqK7caYi');
-    let tokenAmount = await connection.getTokenAccountBalance(fungibleReserve);
-    console.log(tokenAmount);
-    // const tx = new solanaWeb3.Transaction().add(
-    //     solanaWeb3.SystemProgram.createAccountWithSeed({
-    //         fromPubkey: user.publicKey, // funder
-    //         newAccountPubkey: reservePDA,
-    //         basePubkey: user.publicKey,
-    //         seed: seed,
-    //         lamports: 9938880, // 0.1 SOL
-    //         programId: nftReserve,
-    //         space: 1300,
-    //     })
-    // );
+// const getBalance = async () => {
+//     const fungibleReserve = new solanaWeb3.PublicKey('6ifquCHP8oK9dPVDoMeUBdNhPdt6oJHC5iTTJqK7caYi');
+//     let tokenAmount = await connection.getTokenAccountBalance(fungibleReserve);
+//     console.log(tokenAmount);
+//     // const tx = new solanaWeb3.Transaction().add(
+//     //     solanaWeb3.SystemProgram.createAccountWithSeed({
+//     //         fromPubkey: user.publicKey, // funder
+//     //         newAccountPubkey: reservePDA,
+//     //         basePubkey: user.publicKey,
+//     //         seed: seed,
+//     //         lamports: 9938880, // 0.1 SOL
+//     //         programId: nftReserve,
+//     //         space: 1300,
+//     //     })
+//     // );
 
-    // console.log(tx);
+//     // console.log(tx);
 
-    // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
-    // // confirmed result means the obligation account is
-    // console.log(result);
-};
+//     // const result = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [user]);
+//     // // confirmed result means the obligation account is
+//     // console.log(result);
+// };
 
-getBalance();
+// getBalance();

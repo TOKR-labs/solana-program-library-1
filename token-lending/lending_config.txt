@@ -87,3 +87,35 @@ Adding user transfer authority C1QeL4tK9ySLuUW5SMRvLmvyAQBaQV2RhKiAzzxNcaxt
 NFT Source Account 4De7RWQTHFXCaAn8Frk1tVufbgkjuTueMd1MsMMZuXQv
 NFT Source Token mint 5Zh1KB8912Gp6JQFJKJRzN3nDvwFboTGL7DTPDAQ9n8M
 Price Token Account GL19GzqMoUVf78zk8epd6f2E4UkafHuaZTvyVvmAibJB
+
+
+
+
+TOKR
+Program ID: Tok7vSkMxwSxeLuTn4L1AucgBmEsjLMtHEijybaW2dq
+Market: DeR5tUHMNNbBkBNQfhpbjUQFkEEAcZHKjAhfZky5WKG
+ 
+// Wrapped sol - 130
+Adding reserve 4XCbN8BnThuiwU9fzLmZLjWMVWKhDb5Erv8qrLGkyqrQ
+Adding collateral mint 6zV8dsA3EvYHQra9Qxvvy4t5ShC2G2rGwytep9i1mhUX
+Adding collateral supply AnbrNvSfbLQWML9RQJSbzAPGp4PqmKa1sNMiXHJe4uiP
+Adding liquidity supply FzGu3aGGGPpUJc5jiM7gpvq3w9JUkL16pMPpUTbj7Cr3
+Adding liquidity fee receiver 6G38wPoBTGVLcXjTL7hNVe1d7oLxLkAgoj1a5awiL1df
+Adding user collateral GnfELJkVfVDeGJgfv1pdnCz1QVab783VgbSvcjTCEhCj
+Adding user transfer authority 9rTtUhDdjh4zfqE8DF4pmvca7xCsvZ7CmJHJzurdeWeC
+
+
+// ORACLE: dYUUVtUTzqwbQFb9bxCwKt8FkGJb3FrrDm5ACWRZ4ho
+
+// NFT:
+Adding nft reserve 94KiV4S1G43Rch3Q6V1uKvPznjCoeZJnkhnWThkW35BE
+Adding collateral mint 8Ark5uACoFGNzQVE4rrQuUXXNuQBSWpKtmmNRrQZBMF7
+Adding collateral supply CrjC5ibJtJ3wCQFWV5bUbmJuRvGheYK6P57urbJhyfRe
+Adding liquidity supply EBj5vQpeBxdrBM31DQy5u2t15XHBsYF8vQorRQTETZbE
+Adding liquidity fee receiver 8B7h3B5BgDBjo1YGTN3XSY8YUGW6genyh1a8LSYvrQWu
+Adding user collateral 8caxnVVEwgk8T4nLWrsyWXEGZaWbTZ6XsCpEeZqMr4h4
+Adding user transfer authority Aps7svXcF6Z3XA3WSNYthLHSExet1iHH2AsmnrbgzPA6
+NFT Source Account 7udK1kAxf4g7beokRgRepob1vjA4x3WvKEoXmbuskBci
+NFT Source Token mint CBgu3nLmcym2ViLs9s4xUagqCE6uHyyPU9BcDnUvKBhe
+Price Token Account dYUUVtUTzqwbQFb9bxCwKt8FkGJb3FrrDm5ACWRZ4ho
+

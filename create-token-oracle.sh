@@ -1,5 +1,5 @@
 #!/bin/bash
-AMOUNT=4500;
+AMOUNT=9000;
 
 TOKEN=`spl-token create-token --decimals 0 2>&1 | head -n1 | awk '{print $NF}'`;
 ACCOUNT=`spl-token create-account $TOKEN  2>&1 | head -n1 | awk '{print $NF}'`;
