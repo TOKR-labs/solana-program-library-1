@@ -94,9 +94,9 @@ pub enum LendingInstruction {
     ///
     /// Accounts expected by this instruction:
     ///
-    ///   0. `[writable]` Source liquidity token account.
+    ///   0. `[writable]` Source liquidity token account. // this is the wrapped spl;
     ///                     $authority can transfer $liquidity_amount.
-    ///   1. `[writable]` Destination collateral token account.
+    ///   1. `[writable]` Destination collateral token account. // ATA for user whereever the wrapped sol is going,
     ///   2. `[writable]` Reserve account.
     ///   3. `[writable]` Reserve liquidity supply SPL Token account.
     ///   4. `[writable]` Reserve collateral SPL Token mint.
@@ -803,11 +803,18 @@ pub fn deposit_reserve_liquidity(
     reserve_collateral_mint_pubkey: Pubkey,
     lending_market_pubkey: Pubkey,
     user_transfer_authority_pubkey: Pubkey,
+    // @TODO: is_permissioned arg
 ) -> Instruction {
+
+    // @TODO: here we'd essentially need to conditionally check the permission pool of whitelisted user's if the person isn't whitelisted would we just throw an error
+
+    //
+
     let (lending_market_authority_pubkey, _bump_seed) = Pubkey::find_program_address(
         &[&lending_market_pubkey.to_bytes()[..PUBKEY_BYTES]],
         &program_id,
     );
+
     Instruction {
         program_id,
         accounts: vec![
@@ -824,6 +831,7 @@ pub fn deposit_reserve_liquidity(
         ],
         data: LendingInstruction::DepositReserveLiquidity { liquidity_amount }.pack(),
     }
+
 }
 
 /// Creates a 'RedeemReserveCollateral' instruction.

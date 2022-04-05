@@ -23,7 +23,9 @@ export const depositReserveLiquidityInstruction = (
     lendingMarketAuthority: PublicKey,
     transferAuthority: PublicKey
 ): TransactionInstruction => {
+
     const data = Buffer.alloc(DataLayout.span);
+
     DataLayout.encode(
         {
             instruction: LendingInstruction.DepositReserveLiquidity,
@@ -50,4 +52,5 @@ export const depositReserveLiquidityInstruction = (
         programId: LENDING_PROGRAM_ID,
         data,
     });
+
 };

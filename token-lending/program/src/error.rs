@@ -160,6 +160,8 @@ pub enum LendingError {
     #[error("Not enough liquidity after flash loan")]
     NotEnoughLiquidityAfterFlashLoan,
     // 45
+
+    // @TODO - Add additional errors for permissioned
 }
 
 impl From<LendingError> for ProgramError {

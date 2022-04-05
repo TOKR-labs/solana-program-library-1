@@ -606,6 +606,7 @@ pub struct ReserveConfig {
     pub max_borrow_rate: u8,
     /// Program owner fees assessed, separate from gains due to interest accrual
     pub fees: ReserveFees,
+    // @TODO: Optional or empty vector Potentially add a whitelist pubkey for whitelist_reserve account vec[PublicKeys]
 }
 
 /// Additional fee information on a reserve

@@ -1,14 +1,12 @@
 #!/bin/bash
 echo "Running deploy script...";
-OWNER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-program-owner2.json;
-LENDER_KEYPAIR=/Users/gmiller/code/tokr-labs/keys/nft-lender-oracle4.json;
-CONFIG=/Users/gmiller/.config/solana/cli/config.yml;
 
 solana config set --url https://api.devnet.solana.com -k $OWNER_KEYPAIR;
 # Get OWNER from keypair_path key of the solana config file
 OWNER_ADDRESS=`solana address -k $OWNER_KEYPAIR`
 LENDER_ADDRESS=`solana address -k $LENDER_KEYPAIR`
 
+# this fails if you dont have any wrapped sol
 spl-token unwrap;
 
 set -e;
